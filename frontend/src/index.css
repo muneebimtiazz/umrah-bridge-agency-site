@@ -1,0 +1,11 @@
+@import "./assets/fonts.css";
+@import "tailwindcss";
+
+
+:root {
+  --font-sans: "Satoshi", sans-serif;
+}
+
+body {
+  font-family: "Satoshi", sans-serif;
+}
