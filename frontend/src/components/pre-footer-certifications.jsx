@@ -1,4 +1,3 @@
-// Import your actual images here later:
 import atolLogo from '../assets/images/atol.png';
 import btaLogo from '../assets/images/bbta.png';
 import iataLogo from '../assets/images/iata.png';
