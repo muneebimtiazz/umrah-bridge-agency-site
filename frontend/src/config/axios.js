@@ -1,4 +1,4 @@
-// src/lib/axios.js
+// src/config/axios.js
 import axios from "axios";
 
 const api = axios.create({
@@ -9,11 +9,9 @@ const api = axios.create({
   },
 });
 
-// ===== REQUEST INTERCEPTOR (optional) =====
+// ===== REQUEST INTERCEPTOR =====
 api.interceptors.request.use(
-  (config) => {
-    return config;
-  },
+  (config) => config,
   (error) => Promise.reject(error)
 );
 
@@ -34,7 +32,14 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
+    // Skip retry logic for the refresh endpoint itself — otherwise a failed
+    // refresh would recursively trigger another refresh attempt and deadlock.
+    if (originalRequest.url?.includes("/auth/refresh")) {
+      return Promise.reject(error);
+    }
+
     if (error.response?.status === 401 && !originalRequest._retry) {
+      // Queue concurrent requests while a refresh is already in flight
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
@@ -45,12 +50,11 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        // call refresh endpoint (uses HttpOnly refresh cookie)
         await api.post("/auth/refresh");
-
         processQueue(null);
         return api(originalRequest);
       } catch (err) {
+        // Refresh failed (no valid refresh cookie) — flush queue and give up
         processQueue(err);
         return Promise.reject(err);
       } finally {

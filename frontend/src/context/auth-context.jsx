@@ -1,47 +1,50 @@
-
-import { createContext, useContext, useEffect, useState } from "react";
+// src/context/auth-context.jsx
+import { createContext, useContext, useState } from "react";
 import api from "../config/axios";
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
 
-  // ===== LOAD USER ON APP START =====
-  const loadUser = async () => {
+  // ===== CHECK CURRENT SESSION =====
+  // NOT called automatically on mount — only called explicitly by:
+  //   • Login.jsx  (on mount, to redirect already-authenticated admins)
+  //   • ProtectedRoute.jsx  (on mount, to verify a session before showing admin pages)
+  // This keeps every public page completely free of auth network calls.
+  const checkAuth = async () => {
+    setLoading(true);
     try {
       const res = await api.get("/auth/me");
       setUser(res.data.user);
-    } catch (err) {
+      return res.data.user;
+    } catch {
       setUser(null);
+      return null;
     } finally {
       setLoading(false);
+      setAuthChecked(true);
     }
   };
-
-  useEffect(() => {
-    loadUser();
-  }, []);
 
   // ===== LOGIN =====
   const login = async (email, password) => {
     const res = await api.post("/auth/login", { email, password });
     setUser(res.data.user);
-    return res.data;
-  };
-
-  // ===== SIGNUP =====
-  const signup = async (data) => {
-    const res = await api.post("/auth/signup", data);
-    setUser(res.data.user);
+    setAuthChecked(true);
     return res.data;
   };
 
   // ===== LOGOUT =====
   const logout = async () => {
-    await api.post("/auth/logout");
-    setUser(null);
+    try {
+      await api.post("/auth/logout");
+    } finally {
+      setUser(null);
+      setAuthChecked(false);
+    }
   };
 
   return (
@@ -50,8 +53,9 @@ export const AuthProvider = ({ children }) => {
         user,
         setUser,
         loading,
+        authChecked,
+        checkAuth,
         login,
-        signup,
         logout,
         isAuthenticated: !!user,
       }}

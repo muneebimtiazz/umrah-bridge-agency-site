@@ -4,37 +4,6 @@ import User from "../user/user.model.js";
 import { createAccessToken, createRefreshToken } from "../../utils/tokens.js";
 import { setAccessTokenCookie, setRefreshTokenCookie, clearAuthCookies } from "../../utils/cookies.js";
 
-// ===== SIGNUP =====
-export const signup = async (req,res)=>{ 
-  try {
-    const { firstName,lastName,email,password } = req.body;
-
-    const existingUser = await User.findOne({ email });
-    if(existingUser) return res.status(409).json({ message:"Email already registered" });
-
-    const hashed=await bcrypt.hash(password,10)
-
-    const user = await User.create({
-      firstName,
-      lastName,
-      email,
-      password: hashed
-    });
-
-    const payload = { id:user._id, role:user.role };
-
-    setAccessTokenCookie(res, createAccessToken(payload));
-    setRefreshTokenCookie(res, createRefreshToken(payload));
-
-    return res.status(201).json({
-      message:"Signup successful",
-      user:{ id:user._id, firstName:user.firstName, lastName:user.lastName, email:user.email, role:user.role }
-    });
-} catch(err){
-    console.error("Signup Error:",err);
-    return res.status(500).json({ message:"Internal server error" });
-} };
-
 // ===== LOGIN =====
 export const login = async (req,res)=>{ 
   try {
