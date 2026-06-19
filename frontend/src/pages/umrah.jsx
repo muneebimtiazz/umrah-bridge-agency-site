@@ -67,7 +67,7 @@ export default function Umrah() {
 
   return (
     <div className="min-h-screen bg-gray-50/50">
-      <div className="px-4 py-12 md:px-10 lg:px-16 max-w-[90rem] mx-auto w-full">
+      <div className="px-4 py-12 md:px-10 lg:px-16 max-w-360 mx-auto w-full">
 
         {/* Header */}
         <div className="text-center mb-10 sm:mb-12">
@@ -107,7 +107,7 @@ export default function Umrah() {
           </div>
 
           {/* Desktop/Tablet View: Horizontal Tab Bar */}
-          <div className="hidden sm:flex justify-center border-b border-gray-200 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="hidden sm:flex justify-center border-b border-gray-200 overflow-x-auto scrollbar-none [&::-webkit-scrollbar]:hidden">
             <div className="flex space-x-2 md:space-x-4 pb-3">
               {tabs.map((tab) => (
                 <button

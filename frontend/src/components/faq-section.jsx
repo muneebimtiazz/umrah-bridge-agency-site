@@ -39,8 +39,8 @@ export default function FAQSection() {
                 key={faq.id}
                 className={`transition-all duration-300 rounded-2xl border backdrop-blur-sm ${
                   isOpen
-                    ? "border-[#D4AF37]/30 bg-white/[0.03] shadow-[0_10px_30px_-10px_rgba(212,175,55,0.1)]"
-                    : "border-white/[0.06] bg-white/[0.01] hover:bg-white/[0.02] hover:border-white/[0.12]"
+                    ? "border-[#D4AF37]/30 bg-white/3 shadow-[0_10px_30px_-10px_rgba(212,175,55,0.1)]"
+                    : "border-white/6 bg-white/1 hover:bg-white/2 hover:border-white/12"
                 }`}
               >
                 <button
@@ -73,7 +73,7 @@ export default function FAQSection() {
                   }`}
                 >
                   <div className="overflow-hidden">
-                    <div className="px-6 pb-6 text-sm md:text-base leading-relaxed text-emerald-100/70 border-t border-white/[0.04] pt-4 mt-1">
+                    <div className="px-6 pb-6 text-sm md:text-base leading-relaxed text-emerald-100/70 border-t border-white/4 pt-4 mt-1">
                       {faq.a}
                     </div>
                   </div>

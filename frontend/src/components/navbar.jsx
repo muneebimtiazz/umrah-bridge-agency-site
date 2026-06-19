@@ -76,7 +76,7 @@ function QuoteModal({ isOpen, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <div 
         className="bg-white w-full max-w-md rounded shadow-2xl flex flex-col animate-in fade-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
@@ -399,7 +399,7 @@ export default function NavBar() {
 
               <div
                 className={`overflow-hidden transition-all duration-300 ${
-                  mobileUmrahOpen ? "max-h-[400px] pb-4" : "max-h-0"
+                  mobileUmrahOpen ? "max-h-100 pb-4" : "max-h-0"
                 }`}
               >
                 <div className="pl-4 ml-2 border-l border-[#D4AF37]/30 space-y-1 mt-1">

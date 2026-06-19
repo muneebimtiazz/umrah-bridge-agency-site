@@ -97,7 +97,7 @@ function SideImageCard({ pkg }) {
           alt={pkg.title}
           className="absolute inset-0 w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#0d2820]/50" />
+        <div className="absolute inset-0 bg-linear-to-r from-transparent to-[#0d2820]/50" />
       </div>
 
       {/* Content */}

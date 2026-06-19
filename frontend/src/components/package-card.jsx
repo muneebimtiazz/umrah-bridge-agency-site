@@ -72,20 +72,20 @@ export function PackageCard({
 
       {/* FEATURED STAR */}
       {isFeatured && (
-        <div className="absolute top-0 right-4 w-[32px] h-[42px] z-20 bg-[#C9A84C] rounded-b-md flex items-center justify-center shadow-md">
+        <div className="absolute top-0 right-4 w-8 h-10.5 z-20 bg-[#C9A84C] rounded-b-md flex items-center justify-center shadow-md">
           <Star className="w-4 h-4 text-white fill-white" />
         </div>
       )}
 
       {/* IMAGE */}
-      <div className="relative h-[200px] overflow-hidden bg-gray-900">
+      <div className="relative h-50 overflow-hidden bg-gray-900">
         <img
           src={imageUrl}
           alt={title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-90"
         />
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/20 to-transparent" />
 
         <div className="absolute bottom-0 left-0 w-full p-4">
           <h3 className="text-white text-[17px] font-bold line-clamp-2 leading-tight">{title}</h3>
@@ -113,7 +113,7 @@ export function PackageCard({
               className="flex items-center gap-2 text-[12px] text-gray-600"
             >
               <span className="w-1.5 h-1.5 rounded bg-[#C9A84C]" />
-              <span className="font-bold text-gray-900 min-w-[70px]">
+              <span className="font-bold text-gray-900 min-w-17.5">
                 {stay.city}:
               </span>
               <span className="truncate" title={stay.hotel}>{stay.hotel}</span>

@@ -365,7 +365,7 @@ export default function Visa() {
           </div>
 
           {/* Application Form */}
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-5 sm:p-6 w-full lg:w-[380px] shrink-0 relative overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-5 sm:p-6 w-full lg:w-95 shrink-0 relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-1 bg-[#C9A84C]" />
             <h2 className="text-[16px] sm:text-[18px] font-bold text-[#051A14] mb-1">Start Application</h2>
             <p className="text-[11px] sm:text-[12px] text-gray-500 mb-5 leading-relaxed">Submit your details. Our concierges will guide you on the best visa option.</p>
