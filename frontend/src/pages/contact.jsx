@@ -18,21 +18,20 @@ import {
 // API Service
 import { createInquiry } from "../services/enquiry.service";
 
+// MUST match the backend Inquiry schema ENUM exactly
 const JOURNEY_TYPES = [
   "Umrah Package",
   "Hajj Package",
-  "Visa Service",
   "Custom Itinerary",
-  "General Inquiry"
+  "Visa Only"
 ];
 
+// MUST match the backend Inquiry schema ENUM exactly
 const TRAVELER_COUNTS = [
-  "1 Traveler",
-  "2 Travelers",
-  "3 Travelers",
-  "4 Travelers",
-  "5+ Travelers",
-  "Group (10+)"
+  "1 Pilgrim",
+  "2 Pilgrims",
+  "3-4 Pilgrims",
+  "5+ Pilgrims"
 ];
 
 export default function Contact() {
@@ -269,7 +268,7 @@ export default function Contact() {
           </div>
 
           {/* ── Right: Headquarters & Map (Light Theme) ── */}
-          <div className="w-full lg:w-[420px] bg-white p-8 md:p-12 flex flex-col justify-between shrink-0 border-l border-gray-100">
+          <div className="w-full lg:w-105 bg-white p-8 md:p-12 flex flex-col justify-between shrink-0 border-l border-gray-100">
             
             <div>
               <h3 className="text-[20px] font-bold text-gray-900 tracking-tight mb-8 flex items-center gap-2">
@@ -328,7 +327,7 @@ export default function Contact() {
             </div>
 
             {/* Map Integration */}
-            <div className="mt-10 rounded-xl overflow-hidden border border-gray-200 shadow-sm h-[180px] relative">
+            <div className="mt-10 rounded-xl overflow-hidden border border-gray-200 shadow-sm h-45 relative">
               <iframe
                 title="Office Location Map"
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2488.4363297155663!2d-0.07727142338571439!3d51.41334811713504!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x48760117469a7b97%3A0x6335f6063b715610!2s13%20Station%20Rd%2C%20London%20SE25%205AH%2C%20UK!5e0!3m2!1sen!2s!4v1710000000000!5m2!1sen!2s"

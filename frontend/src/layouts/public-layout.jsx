@@ -23,7 +23,7 @@ function PublicLayout() {
             : "absolute top-0 left-0 z-50 w-full"
         }
       >
-        <div className="max-w-375 mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-395 mx-auto px-4 sm:px-6 lg:px-8">
           <Navbar />
         </div>
       </nav>

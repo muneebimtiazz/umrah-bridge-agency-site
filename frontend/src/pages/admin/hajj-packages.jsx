@@ -31,6 +31,7 @@ export default function HajjPackages() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPkg,  setEditingPkg]  = useState(null);
   const [saving,      setSaving]      = useState(false);
+  const [deletingId,  setDeletingId]  = useState(null); // Tracks which package is being deleted
 
   // ── Fetch ────────────────────────────────────────────────────────────────────
   const fetchPackages = useCallback(async () => {
@@ -38,7 +39,7 @@ export default function HajjPackages() {
     setError(null);
     try {
       const res = await getAllPackages({
-        journeyType: "Hajj",
+        journeyType: "Hajj", // Explicitly fetch Hajj
         isActive:    "all",
         page:        currentPage,
         limit:       ITEMS_PER_PAGE,
@@ -60,32 +61,32 @@ export default function HajjPackages() {
 
   // ── Handlers ─────────────────────────────────────────────────────────────────
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to deactivate this package?")) return;
+    if (!window.confirm("Are you sure you want to permanently delete this package and its images?")) return;
+    
+    setDeletingId(id); // Start loader on the specific button
     try {
       await deletePackage(id);
       fetchPackages();
     } catch (err) {
       alert(err.response?.data?.message ?? "Delete failed.");
+    } finally {
+      setDeletingId(null); // Stop loader
     }
   };
 
   const handleOpenEdit = (pkg) => {
-    // Pass the raw package object directly to the new advanced modal
-    setEditingPkg(pkg);
+    setEditingPkg(pkg); // Pass raw DB object directly to modal
     setIsModalOpen(true);
   };
 
   const handleSaveEdit = async (formData) => {
     setSaving(true);
     try {
-      // Map the comprehensive Modal Form Object back to the Backend Schema
       await updatePackage(formData.id, {
         title: formData.title,
-        description: formData.checkoutPoints, // Modal uses checkoutPoints for description
+        description: formData.checkoutPoints,
         tier: formData.category,
-        pricing: {
-          amount: Number(formData.amount)
-        },
+        pricing: { amount: Number(formData.amount) },
         makkahNights: Number(formData.makkahNights),
         madinahNights: Number(formData.madinahNights),
         isFeatured: formData.isFeatured,
@@ -145,8 +146,6 @@ export default function HajjPackages() {
 
         {/* Table */}
         <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
-
-          {/* Column headers */}
           <div className="grid grid-cols-[2fr_1fr_0.8fr_0.9fr_1.1fr] px-5 py-4 border-b border-gray-100 bg-gray-50/50">
             {["Package Name", "Category", "Price", "Duration", "Actions"].map((col) => (
               <span key={col} className="text-[10px] font-bold text-gray-500 tracking-wider uppercase">
@@ -155,7 +154,6 @@ export default function HajjPackages() {
             ))}
           </div>
 
-          {/* Rows */}
           <div className="divide-y divide-gray-100">
             {loading ? (
               <div className="flex flex-col items-center justify-center py-16 gap-3 text-gray-400">
@@ -209,17 +207,23 @@ export default function HajjPackages() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleOpenEdit(pkg)}
-                      className="flex items-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors"
+                      disabled={deletingId === pkg._id}
+                      className="flex items-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
                     >
                       <Pencil className="w-3 h-3" strokeWidth={2.5} />
                       Edit
                     </button>
                     <button
                       onClick={() => handleDelete(pkg._id)}
-                      className="flex items-center gap-1.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors"
+                      disabled={deletingId === pkg._id}
+                      className="flex items-center gap-1.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
                     >
-                      <Trash2 className="w-3 h-3" strokeWidth={2.5} />
-                      Delete
+                      {deletingId === pkg._id ? (
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                      ) : (
+                        <Trash2 className="w-3 h-3" strokeWidth={2.5} />
+                      )}
+                      {deletingId === pkg._id ? "Deleting..." : "Delete"}
                     </button>
                   </div>
                 </div>
@@ -275,7 +279,6 @@ export default function HajjPackages() {
         </div>
       </div>
 
-      {/* Edit Modal */}
       {isModalOpen && (
         <EditPackageModal
           pkg={editingPkg}

@@ -258,7 +258,7 @@ export default function NavBar() {
   return (
     <>
       <div className="w-full">
-        <div className="flex h-20 items-center justify-between px-6 w-full max-w-7xl mx-auto">
+        <div className="flex h-20 items-center justify-between w-full max-w-8xl px-6 mx-auto">
           
 <Link
   to="/"

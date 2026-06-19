@@ -1,7 +1,11 @@
+import ComingSoon from '../components/coming-soon.jsx'
 
 const FeaturedUmrah = () => {
   return (
-    <div>featured-umrah</div>
+    <div>
+      
+    <ComingSoon/>
+    </div>
   )
 }
 

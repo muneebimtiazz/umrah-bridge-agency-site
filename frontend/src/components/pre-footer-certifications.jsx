@@ -1,5 +1,5 @@
 import atolLogo from '../assets/images/atol.png';
-import btaLogo from '../assets/images/bbta.png';
+import btaLogo from '../assets/images/british-travel-awards.png';
 import iataLogo from '../assets/images/iata.png';
 import feefoLogo from '../assets/images/feefo.png';
 import abtotLogo from '../assets/images/etoa.svg';

@@ -196,7 +196,7 @@ style={{
             </p>
 <NavLink
   to="/umrah"
-  className="w-full max-w-50 border border-[#C9A84C] bg-[#C9A84C] text-[#051A14] hover:bg-transparent hover:text-[#C9A84C] transition-colors duration-200 text-[0.7rem] font-bold uppercase tracking-widest py-3 px-3 rounded cursor-pointer flex items-center justify-center gap-1.5"
+  className="max-w-5xl border border-[#D4AF37] bg-[#D4AF37] text-[#051A14] hover:bg-[#051A14] hover:border-[#051A14] hover:text-[#D4AF37] transition-colors duration-300 text-[12px] font-bold uppercase tracking-widest py-2.5 px-4 rounded cursor-pointer flex items-center justify-center gap-1.5"
 >
   View Packages
   <ArrowUpRight size={15} />

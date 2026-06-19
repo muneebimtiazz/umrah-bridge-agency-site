@@ -20,9 +20,11 @@ export const uploadSingle = async (req, res) => {
     let result;
     try {
       result = await cloudinary.uploader.upload(req.file.path, {
-        folder: UPLOAD_FOLDER, // Dynamically set from .env
+        folder: UPLOAD_FOLDER,
         format: "avif",
         quality: "auto",
+        width: 1920,   // Shrinks large images (like 4K photos) to 1920px max width
+        crop: "limit"  // Ensures small images aren't stretched
       });
     } finally {
       cleanupTempFile(req.file.path);
@@ -55,9 +57,11 @@ export const uploadMultiple = async (req, res) => {
     const uploadPromises = req.files.map(async (file) => {
       try {
         return await cloudinary.uploader.upload(file.path, {
-          folder: UPLOAD_FOLDER, // Dynamically set from .env
+          folder: UPLOAD_FOLDER,
           format: "avif",
           quality: "auto",
+          width: 1920,   // Applies size reduction limits to gallery images as well
+          crop: "limit"
         });
       } finally {
         cleanupTempFile(file.path);

@@ -46,19 +46,23 @@ function StarRow({ count = 3 }) {
   );
 }
 
-function HotelImageSlider({ image, badge, name }) {
+function HotelImageSlider({ images = [], badge, name }) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const slides = [image, "https://images.unsplash.com/photo-1542816417-0983c9c9ad53?w=600&q=80"];
+  
+  // Extract URLs from database objects. If no images uploaded, use a fallback banner.
+  const slides = images && images.length > 0 
+    ? images.map(img => img.url) 
+    : ["https://placehold.co/600x400/0d2820/c9a84c?text=Images+Coming+Soon"];
 
   return (
-    <div className="relative overflow-hidden h-56 w-full group/slider">
+    <div className="relative overflow-hidden h-56 w-full group/slider bg-[#0d2820]">
       <div
         className="flex h-full w-full transition-transform duration-500 ease-out"
         style={{ transform: `translateX(-${currentIndex * 100}%)` }}
       >
-        {slides.map((img, idx) => (
+        {slides.map((imgUrl, idx) => (
           <div key={idx} className="w-full h-full shrink-0">
-            <img src={img} alt={`${name} preview ${idx + 1}`} className="w-full h-full object-cover" />
+            <img src={imgUrl} alt={`${name} preview ${idx + 1}`} className="w-full h-full object-cover" />
           </div>
         ))}
       </div>
@@ -67,20 +71,24 @@ function HotelImageSlider({ image, badge, name }) {
         {badge}
       </span>
 
-      <button
-        type="button"
-        onClick={() => setCurrentIndex(v => v === 0 ? slides.length - 1 : v - 1)}
-        className="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 rounded bg-white/90 text-[#051a14] hover:bg-white opacity-0 group-hover/slider:opacity-100 transition-all z-10 shadow-sm cursor-pointer"
-      >
-        <ChevronLeft size={16} />
-      </button>
-      <button
-        type="button"
-        onClick={() => setCurrentIndex(v => v === slides.length - 1 ? 0 : v + 1)}
-        className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded bg-white/90 text-[#051a14] hover:bg-white opacity-0 group-hover/slider:opacity-100 transition-all z-10 shadow-sm cursor-pointer"
-      >
-        <ChevronRight size={16} />
-      </button>
+      {slides.length > 1 && (
+        <>
+          <button
+            type="button"
+            onClick={() => setCurrentIndex(v => v === 0 ? slides.length - 1 : v - 1)}
+            className="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 rounded bg-white/90 text-[#051a14] hover:bg-white opacity-0 group-hover/slider:opacity-100 transition-all z-10 shadow-sm cursor-pointer"
+          >
+            <ChevronLeft size={16} />
+          </button>
+          <button
+            type="button"
+            onClick={() => setCurrentIndex(v => v === slides.length - 1 ? 0 : v + 1)}
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded bg-white/90 text-[#051a14] hover:bg-white opacity-0 group-hover/slider:opacity-100 transition-all z-10 shadow-sm cursor-pointer"
+          >
+            <ChevronRight size={16} />
+          </button>
+        </>
+      )}
     </div>
   );
 }
@@ -233,6 +241,19 @@ export default function PackageDetail() {
 
       {/* ─── Hero Billboard Header ─── */}
       <div className="bg-[#051a14] px-6 py-24 relative overflow-hidden border-b border-[#1a3028]">
+        
+        {/* Dynamic Background Image using Hero Image */}
+        {pkg.heroImage?.url && (
+          <>
+            <img 
+              src={pkg.heroImage.url} 
+              alt={pkg.title} 
+              className="absolute inset-0 w-full h-full object-cover mix-blend-overlay"
+            />
+            <div className="absolute inset-0 bg-linear-to-t from-[#051a14] via-[#051a14]/80 to-transparent" />
+          </>
+        )}
+
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="mb-4">
             <span className="bg-[#c9a84c]/20 border border-[#c9a84c]/40 text-[#c9a84c] text-[12px] font-bold uppercase tracking-widest px-3 py-1 rounded-sm">
@@ -243,7 +264,7 @@ export default function PackageDetail() {
             {pkg.title}
           </h1>
           <p className="text-[#b4bbb9] text-[13px] sm:text-[14px] leading-relaxed max-w-xl mb-8">
-            {pkg.description} Fully tailored for pilgrims seeking an essential, focused spiritual stay during the holy period.
+            {pkg.description} 
           </p>
           <div>
             <p className="text-[#b4bbb9] text-[11px] font-bold uppercase tracking-widest mb-1">Package Starting Rate</p>
@@ -274,11 +295,10 @@ export default function PackageDetail() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 {/* Makkah Accommodations Card */}
                 <div className="border border-gray-100 bg-gray-50/20 rounded overflow-hidden flex flex-col shadow-sm">
-                  {/* Safely extracting image URL so it doesn't crash React */}
                   <HotelImageSlider 
-                    image={pkg.heroImage?.url || "https://placehold.co/600x400/1a1a0e/ffffff?text=Makkah+Hotel"} 
+                    images={pkg.makkahHotel?.images} 
                     badge="Makkah Lodging" 
-                    name="Makkah Accommodation Profile" 
+                    name={pkg.makkahHotel?.name || "Makkah Accommodation"} 
                   />
                   <div className="p-4 flex flex-col flex-1 space-y-2">
                     <div className="flex items-start justify-between gap-2">
@@ -290,7 +310,7 @@ export default function PackageDetail() {
                     <p className="text-[11px] font-bold text-[#c9a84c] tracking-wider uppercase">{pkg.makkahNights} Nights Total Stay</p>
                     <div className="flex items-center gap-2 text-gray-500 pt-1">
                       <MapPin className="w-3.5 h-3.5 text-[#c9a84c] shrink-0" />
-                      <span className="text-[12px] text-gray-600">
+                      <span className="text-[12px] text-gray-600 line-clamp-1" title={pkg.makkahHotel?.distanceFromHaram}>
                         {pkg.makkahHotel?.distanceFromHaram ? `${pkg.makkahHotel.distanceFromHaram} to Haram` : "Clean, reliable transit corridor access"}
                       </span>
                     </div>
@@ -299,7 +319,11 @@ export default function PackageDetail() {
 
                 {/* Madinah Accommodations Card */}
                 <div className="border border-gray-100 bg-gray-50/20 rounded overflow-hidden flex flex-col shadow-sm">
-                  <HotelImageSlider image="https://images.unsplash.com/photo-1564769625905-50e93615e769?w=600&q=80" badge="Madinah Lodging" name="Madinah Accommodation Profile" />
+                  <HotelImageSlider 
+                    images={pkg.madinahHotel?.images} 
+                    badge="Madinah Lodging" 
+                    name={pkg.madinahHotel?.name || "Madinah Accommodation"} 
+                  />
                   <div className="p-4 flex flex-col flex-1 space-y-2">
                     <div className="flex items-start justify-between gap-2">
                       <h4 className="text-[14px] font-bold text-[#051a14]">
@@ -310,7 +334,7 @@ export default function PackageDetail() {
                     <p className="text-[11px] font-bold text-[#c9a84c] tracking-wider uppercase">{pkg.madinahNights} Nights Total Stay</p>
                     <div className="flex items-center gap-2 text-gray-500 pt-1">
                       <MapPin className="w-3.5 h-3.5 text-[#c9a84c] shrink-0" />
-                      <span className="text-[12px] text-gray-600">
+                      <span className="text-[12px] text-gray-600 line-clamp-1" title={pkg.madinahHotel?.distanceFromHaram}>
                         {pkg.madinahHotel?.distanceFromHaram ? `${pkg.madinahHotel.distanceFromHaram} to Masjid an-Nabawi` : "Convenient central coordinates inside the city"}
                       </span>
                     </div>

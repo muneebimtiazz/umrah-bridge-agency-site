@@ -18,9 +18,9 @@ import {
   Snowflake,
 } from "lucide-react";
 
-// Updated imports to reflect the new architecture
+// Using only uploadSingleImage for Vercel payload safety
 import { createPackage } from "../../services/package.service";
-import { uploadSingleImage, uploadMultipleImages } from "../../services/image.service";
+import { uploadSingleImage } from "../../services/image.service";
 
 const availableInclusions = [
   "Umrah Visa",
@@ -82,7 +82,7 @@ function PackageSummary({ data }) {
 
       <div className="px-4 pb-2 border-b border-white/5">
         <p className="text-[10px] text-gray-400 uppercase tracking-widest">Package Preview</p>
-        <h3 className="text-base font-bold leading-snug mt-1 min-h-[44px] text-white">
+        <h3 className="text-base font-bold leading-snug mt-1 min-h-11 text-white">
           {title || "Untitled Package Experience"}
         </h3>
       </div>
@@ -170,7 +170,7 @@ function Input({ ...props }) {
   return (
     <input
       {...props}
-      className={`w-full border border-gray-200 rounded-md px-3 py-2 text-xs text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-400 bg-white ${props.className || ""}`}
+      className={`w-full border border-gray-200 rounded-md px-3 py-2 text-xs text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#c9a84c] bg-white ${props.className || ""}`}
     />
   );
 }
@@ -180,7 +180,7 @@ function Select({ children, className = "", ...props }) {
     <div className={`relative ${className}`}>
       <select
         {...props}
-        className="appearance-none w-full border border-gray-200 rounded-md px-3 py-2 text-xs text-gray-700 bg-white focus:outline-none focus:ring-1 focus:ring-blue-400 pr-7"
+        className="appearance-none w-full border border-gray-200 rounded-md px-3 py-2 text-xs text-gray-700 bg-white focus:outline-none focus:ring-1 focus:ring-[#c9a84c] pr-7"
       >
         {children}
       </select>
@@ -196,7 +196,7 @@ function NightInput({ label, value, onChange }) {
         <MapPin size={12} className="text-gray-400" />
         <span className="text-xs text-gray-600">{label}</span>
       </div>
-      <div className="flex items-center border border-gray-200 rounded-md overflow-hidden focus-within:ring-1 focus-within:ring-blue-400">
+      <div className="flex items-center border border-gray-200 rounded-md overflow-hidden focus-within:ring-1 focus-within:ring-[#c9a84c]">
         <input
           type="number"
           value={value}
@@ -264,7 +264,7 @@ function HotelCard({ title, data, onUpdate }) {
         </div>
 
         <textarea
-          className="w-full border border-gray-200 rounded-md px-3 py-2 text-xs text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-400 resize-none bg-white"
+          className="w-full border border-gray-200 rounded-md px-3 py-2 text-xs text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#c9a84c] resize-none bg-white"
           placeholder="Hotel Description"
           rows={2}
           value={data.description}
@@ -274,7 +274,7 @@ function HotelCard({ title, data, onUpdate }) {
 
       <div
         onClick={() => document.getElementById(`hotel-upload-${title}`).click()}
-        className="mt-3 border border-dashed border-gray-300 hover:border-gray-400 hover:bg-gray-100 transition-colors rounded-lg flex flex-col items-center justify-center py-4 gap-1 bg-gray-50 cursor-pointer"
+        className="mt-3 border border-dashed border-gray-300 hover:border-[#c9a84c] hover:bg-yellow-50/50 transition-colors rounded-lg flex flex-col items-center justify-center py-4 gap-1 bg-gray-50 cursor-pointer"
       >
         <Upload size={16} className="text-gray-400" />
         <span className="text-[10px] text-gray-500 font-medium">Click to Upload Images</span>
@@ -367,37 +367,30 @@ export default function Dashboard() {
         if (key) inclusionsObj[key] = true;
       });
 
-      // 2. PARALLEL PRE-UPLOADS
-      const uploadTasks = [];
-      let heroIdx = -1, makkahIdx = -1, madinahIdx = -1;
+      // 2. SEQUENTIAL ONE-BY-ONE UPLOADS (Prevents Network Choking)
+      let heroImageId = null;
+      const makkahImageIds = [];
+      const madinahImageIds = [];
 
-      // Queue Hero Image
+      // A. Upload Hero Image first
       if (packageData.heroImage instanceof File) {
-        heroIdx = uploadTasks.length;
-        uploadTasks.push(uploadSingleImage(packageData.heroImage, "package"));
+        const heroRes = await uploadSingleImage(packageData.heroImage, "package");
+        heroImageId = heroRes.data.data._id;
       }
 
-      // Queue Makkah Hotel Images
+      // B. Upload Makkah Images sequentially
       const makkahFiles = packageData.makkahHotel.images.map((i) => i.file).filter(Boolean);
-      if (makkahFiles.length > 0) {
-        makkahIdx = uploadTasks.length;
-        uploadTasks.push(uploadMultipleImages(makkahFiles, "hotel"));
+      for (const file of makkahFiles) {
+        const res = await uploadSingleImage(file, "hotel");
+        makkahImageIds.push(res.data.data._id);
       }
 
-      // Queue Madinah Hotel Images
+      // C. Upload Madinah Images sequentially
       const madinahFiles = packageData.madinahHotel.images.map((i) => i.file).filter(Boolean);
-      if (madinahFiles.length > 0) {
-        madinahIdx = uploadTasks.length;
-        uploadTasks.push(uploadMultipleImages(madinahFiles, "hotel"));
+      for (const file of madinahFiles) {
+        const res = await uploadSingleImage(file, "hotel");
+        madinahImageIds.push(res.data.data._id);
       }
-
-      // Execute all uploads simultaneously
-      const uploadResults = await Promise.all(uploadTasks);
-
-      // Extract newly generated image IDs
-      const heroImageId = heroIdx !== -1 ? uploadResults[heroIdx].data.data._id : null;
-      const makkahImageIds = makkahIdx !== -1 ? uploadResults[makkahIdx].data.data.map(img => img._id) : [];
-      const madinahImageIds = madinahIdx !== -1 ? uploadResults[madinahIdx].data.data.map(img => img._id) : [];
 
       // 3. CONSTRUCT HOTEL DATA
       const makkahHotelData = packageData.makkahHotel.name
@@ -406,7 +399,7 @@ export default function Dashboard() {
             starRating: starLabelToNumber(packageData.makkahHotel.star),
             distanceFromHaram: packageData.makkahHotel.distance,
             description: packageData.makkahHotel.description,
-            images: makkahImageIds, // Pre-uploaded IDs
+            images: makkahImageIds, 
           }
         : undefined;
 
@@ -416,7 +409,7 @@ export default function Dashboard() {
             starRating: starLabelToNumber(packageData.madinahHotel.star),
             distanceFromHaram: packageData.madinahHotel.distance,
             description: packageData.madinahHotel.description,
-            images: madinahImageIds, // Pre-uploaded IDs
+            images: madinahImageIds, 
           }
         : undefined;
 
@@ -438,7 +431,7 @@ export default function Dashboard() {
         },
         directFlights: packageData.directFlights,
         isFeatured: packageData.inclusions.includes("Featured"),
-        heroImage: heroImageId, // Pre-uploaded Hero ID
+        heroImage: heroImageId,
       };
 
       // 5. CREATE PACKAGE
@@ -481,13 +474,13 @@ export default function Dashboard() {
         </div>
 
         {submitError && (
-          <div className="mb-4 px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-xs text-red-600">
+          <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-xs font-medium text-red-600">
             {submitError}
           </div>
         )}
         {submitSuccess && (
-          <div className="mb-4 px-4 py-2 bg-green-50 border border-green-200 rounded-lg text-xs text-green-700 flex items-center gap-2">
-            <CheckCircle2 size={14} />
+          <div className="mb-4 px-4 py-3 bg-green-50 border border-emerald-200 rounded-lg text-xs font-bold text-emerald-700 flex items-center gap-2">
+            <CheckCircle2 size={16} />
             Package created successfully!
           </div>
         )}
@@ -499,7 +492,7 @@ export default function Dashboard() {
             <SectionCard icon={FileText} title="Package Identity">
               <div className="flex flex-col gap-3">
                 <div>
-                  <label className="text-xs text-gray-600 block mb-1">Package Title</label>
+                  <label className="text-xs font-medium text-gray-600 block mb-1.5">Package Title</label>
                   <Input
                     placeholder="e.g. Royal Ramadan Umrah Experience"
                     value={packageData.title}
@@ -509,7 +502,7 @@ export default function Dashboard() {
 
                 <div>
                   <textarea
-                    className="w-full border border-gray-200 rounded-md px-3 py-2 text-xs text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-400 resize-none bg-white"
+                    className="w-full border border-gray-200 rounded-md px-3 py-2 text-xs text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#c9a84c] resize-none bg-white"
                     rows={4}
                     placeholder="Enter description..."
                     value={packageData.description}
@@ -518,16 +511,16 @@ export default function Dashboard() {
                 </div>
 
                 <div>
-                  <label className="text-xs text-gray-600 block mb-2">Journey Type</label>
+                  <label className="text-xs font-medium text-gray-600 block mb-2">Journey Type</label>
                   <div className="flex gap-2">
                     {["Umrah", "Hajj"].map((type) => (
                       <button
                         key={type}
                         type="button"
                         onClick={() => updateData("journeyType", type)}
-                        className={`px-5 py-1.5 rounded-md text-xs font-medium border transition-colors ${
+                        className={`px-5 py-1.5 rounded-md text-xs font-bold border transition-colors ${
                           packageData.journeyType === type
-                            ? "bg-[#1a1a0e] text-white border-[#1a1a0e]"
+                            ? "bg-[#1a1a0e] text-[#c9a84c] border-[#1a1a0e]"
                             : "bg-white text-gray-700 border-gray-300 hover:border-gray-400"
                         }`}
                       >
@@ -539,7 +532,7 @@ export default function Dashboard() {
 
                 {/* Tier selector */}
                 <div>
-                  <label className="text-xs text-gray-600 block mb-2">Package Tier</label>
+                  <label className="text-xs font-medium text-gray-600 block mb-2">Package Tier</label>
                   <div className="flex flex-wrap gap-2">
                     {[
                       { id: "budget",   label: "Budget",   icon: LayoutGrid },
@@ -555,7 +548,7 @@ export default function Dashboard() {
                         onClick={() => updateData("tier", id)}
                         className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-medium border transition-colors ${
                           packageData.tier === id
-                            ? "bg-[#1a1a0e] text-white border-[#1a1a0e]"
+                            ? "bg-[#1a1a0e] text-[#c9a84c] border-[#1a1a0e]"
                             : "bg-white text-gray-700 border-gray-300 hover:border-gray-400"
                         }`}
                       >
@@ -629,7 +622,6 @@ export default function Dashboard() {
                           </div>
                         </div>
                         
-                        {/* Hidden input to maintain form control style */}
                         <input
                           type="checkbox"
                           checked={isChecked}
@@ -637,7 +629,6 @@ export default function Dashboard() {
                           className="hidden"
                         />
                         
-                        {/* Custom Switch UI */}
                         <div
                           className={`w-10 h-6 rounded-full flex items-center px-1 transition-colors ${
                             isChecked ? "bg-yellow-400 justify-end" : "bg-gray-300 justify-start"
@@ -655,7 +646,7 @@ export default function Dashboard() {
                         type="checkbox"
                         checked={isChecked}
                         onChange={() => handleInclusionToggle(item)}
-                        className="h-4 w-4 rounded border-gray-300"
+                        className="h-4 w-4 rounded text-[#c9a84c] focus:ring-[#c9a84c] border-gray-300"
                       />
                       {item}
                     </label>
@@ -668,21 +659,21 @@ export default function Dashboard() {
             <SectionCard icon={DollarSign} title="Pricing & Flights">
               <div className="flex flex-wrap items-end gap-4">
                 <div>
-                  <label className="text-xs text-gray-600 block mb-1">Base Price (pp)</label>
-                  <div className="flex items-center border border-gray-200 rounded-md overflow-hidden focus-within:ring-1 focus-within:ring-blue-400">
+                  <label className="text-xs font-medium text-gray-600 block mb-1.5">Base Price (pp)</label>
+                  <div className="flex items-center border border-gray-200 rounded-md overflow-hidden focus-within:ring-1 focus-within:ring-[#c9a84c]">
                     <input
                       type="number"
                       value={packageData.basePrice}
                       onChange={(e) => updateData("basePrice", e.target.value)}
-                      className="w-24 px-2 py-2 text-xs text-gray-800 focus:outline-none bg-white"
+                      className="w-24 px-3 py-2 text-xs font-semibold text-gray-800 focus:outline-none bg-white"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-xs text-gray-600 block mb-1">Currency</label>
+                  <label className="text-xs font-medium text-gray-600 block mb-1.5">Currency</label>
                   <Select
-                    className="w-20"
+                    className="w-20 font-semibold"
                     value={packageData.currency}
                     onChange={(e) => updateData("currency", e.target.value)}
                   >
@@ -692,9 +683,9 @@ export default function Dashboard() {
                 </div>
 
                 <div>
-                  <label className="text-xs text-gray-600 block mb-1">Sharing Type</label>
+                  <label className="text-xs font-medium text-gray-600 block mb-1.5">Sharing Type</label>
                   <Select
-                    className="w-28"
+                    className="w-28 font-semibold"
                     value={packageData.sharingType}
                     onChange={(e) => updateData("sharingType", e.target.value)}
                   >
@@ -706,11 +697,11 @@ export default function Dashboard() {
                 </div>
 
                 <div>
-                  <label className="text-xs text-gray-600 block mb-1">Direct Flights</label>
+                  <label className="text-xs font-medium text-gray-600 block mb-1.5">Direct Flights</label>
                   <div
                     onClick={() => updateData("directFlights", !packageData.directFlights)}
-                    className={`w-9 h-5 rounded-full flex items-center px-0.5 cursor-pointer transition-colors ${
-                      packageData.directFlights ? "bg-blue-500 justify-end" : "bg-gray-300 justify-start"
+                    className={`w-10 h-6 rounded-full flex items-center px-1 cursor-pointer transition-colors ${
+                      packageData.directFlights ? "bg-[#c9a84c] justify-end" : "bg-gray-300 justify-start"
                     }`}
                   >
                     <div className="w-4 h-4 bg-white rounded-full shadow" />
@@ -721,18 +712,18 @@ export default function Dashboard() {
 
             {/* 6. Visual Gallery */}
             <SectionCard icon={ImageIcon} title="Visual Gallery">
-              <p className="text-xs text-gray-500 mb-2 font-medium">MAIN HERO IMAGE</p>
+              <p className="text-xs text-gray-500 mb-3 font-medium tracking-wide uppercase">Main Hero Image</p>
 
               <div
                 onClick={() => document.getElementById("hero-upload").click()}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={handleDrop}
-                className="border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center py-8 gap-2 cursor-pointer hover:border-gray-400 hover:bg-gray-50 transition-colors bg-white"
+                className="border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center py-10 gap-3 cursor-pointer hover:border-[#c9a84c] hover:bg-yellow-50/50 transition-colors bg-gray-50/30"
               >
-                <div className="p-2 bg-gray-100 rounded-full">
-                  <Upload size={20} className="text-gray-500" />
+                <div className="p-3 bg-white shadow-sm border border-gray-100 rounded-full">
+                  <Upload size={20} className="text-[#c9a84c]" />
                 </div>
-                <span className="text-xs text-gray-600 font-medium">
+                <span className="text-xs text-gray-700 font-semibold">
                   {packageData.heroImage
                     ? packageData.heroImage.name
                     : "Drag & Drop or Click to Upload"}
@@ -753,14 +744,14 @@ export default function Dashboard() {
                     <img
                       src={URL.createObjectURL(packageData.heroImage)}
                       alt="Hero preview"
-                      className="w-48 h-48 object-cover"
+                      className="w-56 h-40 object-cover"
                     />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <button
                         onClick={() => updateData("heroImage", null)}
-                        className="bg-white/20 hover:bg-white/40 text-white font-medium text-xs px-3 py-1.5 rounded-lg backdrop-blur-sm transition-colors"
+                        className="bg-white/90 hover:bg-white text-red-600 font-bold text-xs px-4 py-2 rounded-lg backdrop-blur-sm transition-colors shadow-lg"
                       >
-                        Remove
+                        Remove Image
                       </button>
                     </div>
                   </div>
@@ -773,15 +764,15 @@ export default function Dashboard() {
               type="button"
               onClick={handleSubmit}
               disabled={submitting || !packageData.title || !packageData.description}
-              className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-bold text-white bg-[#c9a84c] hover:bg-[#b8963e] disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+              className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl text-sm font-bold uppercase tracking-widest text-[#051a14] bg-[#c9a84c] hover:bg-[#b8963e] disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-md mt-2"
             >
-              {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
-              {submitting ? "Creating Package…" : "Create Package"}
+              {submitting && <Loader2 className="w-5 h-5 animate-spin" />}
+              {submitting ? "Uploading & Creating Package…" : "Publish Package"}
             </button>
           </div>
 
           {/* Right column — Sidebar */}
-          <div className="lg:w-[320px] xl:w-[340px] shrink-0 w-full">
+          <div className="lg:w-[320px] xl:w-85 shrink-0 w-full">
             <div className="sticky top-6">
               <PackageSummary data={packageData} />
             </div>

@@ -1,6 +1,7 @@
 import Package from "./package.model.js";
 import Hotel from "../hotel/hotel.model.js";
 import Image from "../image/image.model.js";
+import cloudinary from "../../config/cloudinary.config.js"; // Required for cascade deletion
 
 // GET /packages
 export const getAllPackages = async (req, res) => {
@@ -85,7 +86,6 @@ export const createPackage = async (req, res) => {
     let resolvedMakkahHotel = makkahHotel || null;
     let resolvedMadinahHotel = madinahHotel || null;
 
-    // Create inline hotels if full hotel objects were provided
     if (!resolvedMakkahHotel && makkahHotelData) {
       const h = await Hotel.create({ ...makkahHotelData, city: "Makkah" });
       resolvedMakkahHotel = h._id;
@@ -194,7 +194,7 @@ export const updatePackage = async (req, res) => {
   }
 };
 
-// DELETE /packages/:id - HARD DELETE (permanently removes the package)
+// DELETE /packages/:id - HARD DELETE (permanently removes package, hotels, and images)
 export const deletePackage = async (req, res) => {
   try {
     const pkg = await Package.findById(req.params.id);
@@ -202,40 +202,41 @@ export const deletePackage = async (req, res) => {
       return res.status(404).json({ success: false, message: "Package not found." });
     }
 
-    // Store references before deleting
-    const heroImageId = pkg.heroImage;
-    const makkahHotelId = pkg.makkahHotel;
-    const madinahHotelId = pkg.madinahHotel;
-
-    // Delete the package
-    await Package.findByIdAndDelete(req.params.id);
-
-    // Optional: Clean up associated images (hero image)
-    if (heroImageId) {
-      await Image.findByIdAndDelete(heroImageId);
-    }
-
-    // Optional: Clean up associated hotels (if they were created inline and not used elsewhere)
-    // ⚠️ BE CAREFUL: Only delete hotels if they are not referenced by any other package.
-    // For now, we'll keep hotels to avoid data loss. Uncomment if you want to delete them.
-    /*
-    if (makkahHotelId) {
-      const makkahUsage = await Package.countDocuments({ makkahHotel: makkahHotelId });
-      if (makkahUsage === 0) {
-        await Hotel.findByIdAndDelete(makkahHotelId);
+    // 1. Clean up Hero Image from Cloudinary and DB
+    if (pkg.heroImage) {
+      const heroImgDoc = await Image.findById(pkg.heroImage);
+      if (heroImgDoc) {
+        await cloudinary.uploader.destroy(heroImgDoc.publicId).catch(() => {});
+        await heroImgDoc.deleteOne();
       }
     }
-    if (madinahHotelId) {
-      const madinahUsage = await Package.countDocuments({ madinahHotel: madinahHotelId });
-      if (madinahUsage === 0) {
-        await Hotel.findByIdAndDelete(madinahHotelId);
+
+    // 2. Clean up associated Hotels and their Gallery Images
+    const hotelsToDelete = [pkg.makkahHotel, pkg.madinahHotel].filter(Boolean);
+    
+    for (const hotelId of hotelsToDelete) {
+      const hotel = await Hotel.findById(hotelId);
+      if (hotel) {
+        // Grab all images attached to this hotel
+        const hotelImages = await Image.find({ _id: { $in: hotel.images } });
+        
+        // Delete each image from Cloudinary and DB
+        for (const img of hotelImages) {
+          await cloudinary.uploader.destroy(img.publicId).catch(() => {});
+          await img.deleteOne();
+        }
+        
+        // Finally, delete the hotel document
+        await hotel.deleteOne();
       }
     }
-    */
+
+    // 3. Delete the package document itself
+    await pkg.deleteOne();
 
     return res.status(200).json({
       success: true,
-      message: "Package deleted permanently.",
+      message: "Package, associated hotels, and all images deleted permanently.",
     });
   } catch (err) {
     return res.status(500).json({ success: false, message: err.message });

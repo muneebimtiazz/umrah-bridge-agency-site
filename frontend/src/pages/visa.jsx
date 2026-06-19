@@ -175,62 +175,90 @@ export default function Visa() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50/50 px-4 py-12 md:px-10 lg:px-16 font-sans">
+    <div className="min-h-screen bg-gray-50/50 px-4 py-12 md:px-10 lg:px-16 font-sans overflow-x-hidden">
 
-      <div className="text-center mb-16 max-w-2xl mx-auto">
+      <div className="text-center mb-12 sm:mb-16 max-w-2xl mx-auto">
         {/* Modern pill badge */}
         <div className="inline-flex items-center gap-2 bg-[#D4AF37]/10 border border-[#D4AF37]/20 px-3 py-1.5 rounded-full mb-4">
           <ShieldCheck className="w-3.5 h-3.5 text-[#D4AF37]" />
-          <span className="text-xs font-semibold tracking-widest uppercase text-[#D4AF37]">
+          <span className="text-[10px] sm:text-xs font-semibold tracking-widest uppercase text-[#D4AF37]">
             ARC & IATA Certified • Since 2025
           </span>
         </div>
         
-        {/* Main H1 heading corrected to target audience described in text */}
-        <h1 className="mt-4 text-3xl font-bold tracking-tight text-[#051A14] sm:text-4xl md:text-5xl lg:text-6xl">
+        {/* Main H1 heading */}
+        <h1 className="mt-2 sm:mt-4 text-3xl font-bold tracking-tight text-[#051A14] sm:text-4xl md:text-5xl lg:text-6xl">
           Umrah Visa from <span className="text-[#D4AF37]">the US</span>
         </h1>
         
-        {/* Subheading matching the layout constraints and modern text sizing */}
-        <p className="mt-4 text-sm md:text-base text-gray-500 max-w-xl mx-auto leading-relaxed mb-8">
+        {/* Subheading */}
+        <p className="mt-4 text-[13px] sm:text-sm md:text-base text-gray-500 max-w-xl mx-auto leading-relaxed mb-8">
           Umrah Bridge handles your entire Umrah Visa application — from documentation to approval 
           in as little as 24 hours. Serving US citizens, Green Card holders, and legal residents 
           of all nationalities.
         </p>
 
-        {/* Refined CTAs with micro-interactions matching the premium architecture */}
-        <div className="flex items-center justify-center gap-4 flex-wrap">
-          <a 
-            href="tel:3323340324" 
-            className="flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-100 rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.02)] hover:border-[#D4AF37]/40 hover:shadow-[0_4px_20px_rgba(212,175,55,0.08)] transition-all duration-300 group"
-          >
-            <Phone className="w-4 h-4 text-[#051A14] group-hover:text-[#D4AF37] transition-colors" />
-            <span className="text-xs font-bold text-[#051A14] group-hover:text-[#D4AF37] transition-colors tracking-wide">+44 7445 274723</span>
-          </a>
-          
-          <a 
-            href="https://wa.me/447445274723" 
-            className="flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-100 rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.02)] hover:border-[#25D366]/40 hover:shadow-[0_4px_20px_rgba(37,211,102,0.08)] transition-all duration-300 group"
-          >
-            <MessageCircle className="w-4 h-4 text-[#25D366]" />
-            <span className="text-xs font-bold text-[#051A14] group-hover:text-[#25D366] transition-colors tracking-wide">WhatsApp Us</span>
-          </a>
+        {/* Mobile-Responsive CTAs */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 w-full max-w-sm mx-auto">
+<a
+  href="tel:+447445274723"
+  className="w-full max-w-50 border border-[#C9A84C] bg-[#C9A84C] text-[#051A14] hover:bg-transparent hover:text-[#C9A84C] transition-colors duration-200 text-[0.7rem] font-bold uppercase tracking-widest py-3 px-3 rounded cursor-pointer flex items-center justify-center gap-1.5"
+>
+  <Phone size={15} />
+  Call Now
+</a>
+
+<a
+  href="https://wa.me/447445274723"
+  target="_blank"
+  rel="noopener noreferrer"
+  className="w-full max-w-50 border border-[#C9A84C] bg-[#C9A84C] text-[#051A14] hover:bg-transparent hover:text-[#C9A84C] transition-colors duration-200 text-[0.7rem] font-bold uppercase tracking-widest py-3 px-3 rounded cursor-pointer flex items-center justify-center gap-1.5"
+>
+  <MessageCircle size={15} />
+  WhatsApp Us
+</a>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto space-y-12">
+      <div className="max-w-6xl mx-auto space-y-10 sm:space-y-12">
 
-        {/* ── Visa Type Comparison ── */}
-        <div>
+{/* ── Visa Type Comparison ── */}
+        <div className="w-full">
           <div className="flex items-center gap-2 mb-4">
             <FileText className="w-5 h-5 text-[#C9A84C]" />
             <h2 className="text-[16px] font-bold text-[#051A14]">
               Types of Umrah Visa for US Muslims
             </h2>
           </div>
-          <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left min-w-[600px]">
+
+          {/* Mobile View: Stacked Cards (Shows on small screens, hides on md+) */}
+          <div className="md:hidden flex flex-col gap-4 w-full">
+            {visaComparison.map((row) => (
+              <div key={row.feature} className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm w-full">
+                {/* Feature Header */}
+                <div className="bg-[#051A14] px-4 py-2.5">
+                  <h3 className="text-white text-[12px] font-bold uppercase tracking-wider">{row.feature}</h3>
+                </div>
+                
+                {/* Stacked Data Sections */}
+                <div className="flex flex-col divide-y divide-gray-100">
+                  <div className="px-4 py-3 bg-gray-50/50">
+                    <span className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Traditional Umrah Visa</span>
+                    <span className="text-[12px] text-[#051A14] font-medium leading-relaxed">{row.umrah}</span>
+                  </div>
+                  <div className="px-4 py-3 bg-white">
+                    <span className="block text-[10px] font-bold text-[#C9A84C] uppercase tracking-wider mb-1">Saudi Tourist eVisa</span>
+                    <span className="text-[12px] text-[#051A14] font-medium leading-relaxed">{row.evisa}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop View: Standard Table (Hides on mobile, shows on md+) */}
+          <div className="hidden md:block overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm w-full">
+            <div className="w-full">
+              <table className="w-full text-left">
                 <thead>
                   <tr className="bg-[#051A14]">
                     <th className="px-5 py-3 text-[12px] font-bold text-gray-300 uppercase tracking-wider w-1/3">Feature</th>
@@ -260,8 +288,7 @@ export default function Visa() {
             <h2 className="text-[16px] font-bold text-[#051A14] mb-4">How to Apply — Step by Step</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {steps.map((step) => (
-                <div key={step.number} className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm hover:-translate-y-1 hover:shadow-md transition-all duration-300 relative overflow-hidden group">
-                  {/* Subtle background number */}
+                <div key={step.number} className="bg-white border border-gray-100 rounded-xl p-4 sm:p-5 shadow-sm hover:-translate-y-1 hover:shadow-md transition-all duration-300 relative overflow-hidden group">
                   <span className="absolute -right-2 -bottom-4 text-6xl font-black text-gray-50 group-hover:text-[#C9A84C]/5 transition-colors z-0">
                     {step.number}
                   </span>
@@ -279,7 +306,7 @@ export default function Visa() {
           {/* Processing Times & Alerts */}
           <div className="space-y-4">
             <h2 className="text-[16px] font-bold text-[#051A14] mb-4">Processing Times</h2>
-            <div className="bg-white rounded-xl shadow-sm p-5 border border-gray-100 flex flex-col gap-3">
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-5 border border-gray-100 flex flex-col gap-3">
               {[
                 { label: "Expedited", time: "24 Hours", highlight: true },
                 { label: "Tourist eVisa (Online)", time: "24–72 Hours", highlight: false },
@@ -287,8 +314,8 @@ export default function Visa() {
                 { label: "Peak Seasons", time: "2–3 Weeks", highlight: false },
               ].map((item) => (
                 <div key={item.label} className={`flex items-center justify-between px-3 py-2.5 rounded-md ${item.highlight ? "bg-[#C9A84C]/10 border border-[#C9A84C]/30" : "bg-gray-50 border border-gray-100"}`}>
-                  <span className={`text-[12px] font-bold ${item.highlight ? "text-[#051A14]" : "text-gray-600"}`}>{item.label}</span>
-                  <span className={`text-[12px] font-extrabold ${item.highlight ? "text-[#C9A84C]" : "text-gray-800"}`}>{item.time}</span>
+                  <span className={`text-[11px] sm:text-[12px] font-bold ${item.highlight ? "text-[#051A14]" : "text-gray-600"}`}>{item.label}</span>
+                  <span className={`text-[11px] sm:text-[12px] font-extrabold ${item.highlight ? "text-[#C9A84C]" : "text-gray-800"}`}>{item.time}</span>
                 </div>
               ))}
             </div>
@@ -296,7 +323,7 @@ export default function Visa() {
             {/* Alert Cards */}
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex gap-3 shadow-sm">
               <AlertCircle className="w-5 h-5 text-amber-500 shrink-0" />
-              <p className="text-[12px] text-amber-800 leading-relaxed">
+              <p className="text-[11px] sm:text-[12px] text-amber-800 leading-relaxed">
                 <strong className="text-amber-900 block mb-0.5">2027 Hajj Restriction</strong>
                 Umrah is restricted approx. 1 month before Hajj begins. Check current MOFA announcements before booking flights.
               </p>
@@ -305,19 +332,19 @@ export default function Visa() {
         </div>
 
         {/* ── Requirements + Form ── */}
-        <div className="flex flex-col lg:flex-row gap-8 items-start pt-4">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start pt-4">
 
           {/* Requirements List */}
           <div className="flex-1 w-full space-y-8">
             <div>
               <h2 className="text-[16px] font-bold text-[#051A14] mb-4">Core Document Requirements</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 {coreRequirements.map((req) => (
                   <div key={req.title} className="flex items-start gap-3 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
                     <CheckCircle2 className="w-4 h-4 text-[#C9A84C] shrink-0 mt-0.5" />
                     <div>
                       <p className="text-[13px] font-bold text-[#051A14] mb-1">{req.title}</p>
-                      <p className="text-[12px] text-gray-500 leading-relaxed">{req.description}</p>
+                      <p className="text-[11px] sm:text-[12px] text-gray-500 leading-relaxed">{req.description}</p>
                     </div>
                   </div>
                 ))}
@@ -326,11 +353,11 @@ export default function Visa() {
 
             <div>
               <h2 className="text-[16px] font-bold text-[#051A14] mb-4">Conditional Documents</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 {additionalRequirements.map((item) => (
                   <div key={item.type} className="bg-white rounded-xl border-l-2 border-l-[#C9A84C] border-y border-r border-gray-100 p-4 shadow-sm">
-                    <p className="text-[12px] font-bold text-[#051A14] uppercase tracking-wide mb-1">{item.type}</p>
-                    <p className="text-[12px] text-gray-500 leading-relaxed">{item.docs}</p>
+                    <p className="text-[11px] sm:text-[12px] font-bold text-[#051A14] uppercase tracking-wide mb-1">{item.type}</p>
+                    <p className="text-[11px] sm:text-[12px] text-gray-500 leading-relaxed">{item.docs}</p>
                   </div>
                 ))}
               </div>
@@ -338,28 +365,29 @@ export default function Visa() {
           </div>
 
           {/* Application Form */}
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 w-full lg:w-[380px] shrink-0 relative overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-5 sm:p-6 w-full lg:w-[380px] shrink-0 relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-1 bg-[#C9A84C]" />
-            <h2 className="text-[18px] font-bold text-[#051A14] mb-1">Start Application</h2>
-            <p className="text-[12px] text-gray-500 mb-5 leading-relaxed">Submit your details. Our concierges will guide you on the best visa option.</p>
+            <h2 className="text-[16px] sm:text-[18px] font-bold text-[#051A14] mb-1">Start Application</h2>
+            <p className="text-[11px] sm:text-[12px] text-gray-500 mb-5 leading-relaxed">Submit your details. Our concierges will guide you on the best visa option.</p>
             
-            <form className="space-y-3.5">
-              <div className="flex gap-3">
+            <form className="space-y-3.5 w-full">
+              {/* Responsive Name Row */}
+              <div className="flex flex-col sm:flex-row gap-3">
                 <input type="text" name="firstName" placeholder="First Name" value={form.firstName} onChange={handleChange}
-                  className="w-1/2 text-[12px] border border-gray-200 rounded-lg px-3 py-2.5 placeholder-gray-400 focus:outline-none focus:border-[#C9A84C] bg-gray-50/50 transition-colors" />
+                  className="w-full text-[13px] border border-gray-200 rounded-lg px-3 py-2.5 placeholder-gray-400 focus:outline-none focus:border-[#C9A84C] bg-gray-50/50 transition-colors" />
                 <input type="text" name="lastName" placeholder="Last Name" value={form.lastName} onChange={handleChange}
-                  className="w-1/2 text-[12px] border border-gray-200 rounded-lg px-3 py-2.5 placeholder-gray-400 focus:outline-none focus:border-[#C9A84C] bg-gray-50/50 transition-colors" />
+                  className="w-full text-[13px] border border-gray-200 rounded-lg px-3 py-2.5 placeholder-gray-400 focus:outline-none focus:border-[#C9A84C] bg-gray-50/50 transition-colors" />
               </div>
               <input type="email" name="email" placeholder="Email Address" value={form.email} onChange={handleChange}
-                className="w-full text-[12px] border border-gray-200 rounded-lg px-3 py-2.5 placeholder-gray-400 focus:outline-none focus:border-[#C9A84C] bg-gray-50/50 transition-colors" />
+                className="w-full text-[13px] border border-gray-200 rounded-lg px-3 py-2.5 placeholder-gray-400 focus:outline-none focus:border-[#C9A84C] bg-gray-50/50 transition-colors" />
               <input type="text" name="passportNumber" placeholder="Passport Number" value={form.passportNumber} onChange={handleChange}
-                className="w-full text-[12px] border border-gray-200 rounded-lg px-3 py-2.5 placeholder-gray-400 focus:outline-none focus:border-[#C9A84C] bg-gray-50/50 transition-colors" />
+                className="w-full text-[13px] border border-gray-200 rounded-lg px-3 py-2.5 placeholder-gray-400 focus:outline-none focus:border-[#C9A84C] bg-gray-50/50 transition-colors" />
               <input type="text" name="nationality" placeholder="Nationality" value={form.nationality} onChange={handleChange}
-                className="w-full text-[12px] border border-gray-200 rounded-lg px-3 py-2.5 placeholder-gray-400 focus:outline-none focus:border-[#C9A84C] bg-gray-50/50 transition-colors" />
+                className="w-full text-[13px] border border-gray-200 rounded-lg px-3 py-2.5 placeholder-gray-400 focus:outline-none focus:border-[#C9A84C] bg-gray-50/50 transition-colors" />
               
               <div className="relative">
                 <select name="visaType" value={form.visaType} onChange={handleChange}
-                  className="w-full text-[12px] border border-gray-200 rounded-lg px-3 py-2.5 text-gray-700 appearance-none focus:outline-none focus:border-[#C9A84C] bg-gray-50/50 transition-colors cursor-pointer">
+                  className="w-full text-[13px] border border-gray-200 rounded-lg px-3 py-2.5 text-gray-700 appearance-none focus:outline-none focus:border-[#C9A84C] bg-gray-50/50 transition-colors cursor-pointer">
                   <option value="" disabled hidden>Select Visa Type...</option>
                   <option value="umrah">Traditional Umrah Visa</option>
                   <option value="evisa">Saudi Tourist eVisa</option>
@@ -369,8 +397,8 @@ export default function Visa() {
               </div>
 
               <div className="pt-2">
-                <button type="button" className="w-full bg-[#051A14] hover:bg-[#C9A84C] text-white hover:text-[#051A14] transition-colors duration-300 text-[12px] font-bold uppercase tracking-widest py-3.5 px-4 rounded-lg cursor-pointer flex items-center justify-center gap-2 shadow-sm">
-                  Begin Processing <Send className="w-3.5 h-3.5" />
+                <button type="button" className="w-full bg-[#051A14] hover:bg-[#C9A84C] text-white hover:text-[#051A14] transition-colors duration-300 text-[12px] sm:text-[13px] font-bold uppercase tracking-widest py-3 sm:py-3.5 px-4 rounded-lg cursor-pointer flex items-center justify-center gap-2 shadow-sm">
+                  Begin Processing <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </button>
               </div>
             </form>
@@ -378,17 +406,16 @@ export default function Visa() {
         </div>
 
         {/* ── Why Choose Us (Dark Section) ── */}
-        <div className="bg-[#051A14] rounded-2xl shadow-xl p-6 sm:p-10 relative overflow-hidden">
-          {/* Aesthetic background accent */}
+        <div className="bg-[#051A14] rounded-2xl shadow-xl p-5 sm:p-8 md:p-10 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-[#C9A84C] opacity-5 blur-[100px] rounded-full pointer-events-none" />
           
           <div className="relative z-10">
-            <div className="text-center mb-8">
-              <h2 className="text-[20px] sm:text-2xl font-bold text-white mb-2">Why Choose Umrah Bridge?</h2>
-              <p className="text-[12px] text-[#C9A84C] font-bold uppercase tracking-widest">Rated ⭐⭐⭐⭐⭐ by 75+ US pilgrims</p>
+            <div className="text-center mb-6 sm:mb-8">
+              <h2 className="text-[18px] sm:text-[20px] md:text-2xl font-bold text-white mb-2">Why Choose Umrah Bridge?</h2>
+              <p className="text-[10px] sm:text-[12px] text-[#C9A84C] font-bold uppercase tracking-widest">Rated ⭐⭐⭐⭐⭐ by 75+ US pilgrims</p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
               {[
                 { title: "Licensed & Accredited", desc: "Fully ARC-certified and IATA-accredited. Your application is handled by recognized professionals." },
                 { title: "17+ Years of Service", desc: "Helping US Muslims perform Umrah and Hajj since 2007. Deep experience with all visa situations." },
@@ -399,11 +426,11 @@ export default function Visa() {
               ].map((item) => (
                 <div key={item.title} className="flex items-start gap-3">
                   <div className="bg-[#C9A84C]/20 p-1.5 rounded-md shrink-0 mt-0.5">
-                    <CheckCircle2 className="w-4 h-4 text-[#C9A84C]" />
+                    <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#C9A84C]" />
                   </div>
                   <div>
-                    <p className="text-[13px] font-bold text-white mb-1">{item.title}</p>
-                    <p className="text-[12px] text-[#B4BBB9] leading-relaxed">{item.desc}</p>
+                    <p className="text-[12px] sm:text-[13px] font-bold text-white mb-1">{item.title}</p>
+                    <p className="text-[11px] sm:text-[12px] text-[#B4BBB9] leading-relaxed">{item.desc}</p>
                   </div>
                 </div>
               ))}
@@ -412,11 +439,11 @@ export default function Visa() {
         </div>
 
         {/* ── FAQ & Important Rules ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
           {/* FAQ */}
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+          <div className="bg-white rounded-xl shadow-sm p-5 sm:p-6 border border-gray-100">
             <h2 className="text-[16px] font-bold text-[#051A14] mb-4">Frequently Asked Questions</h2>
-            <div className="flex flex-col">
+            <div className="flex flex-col w-full">
               {faqs.map((faq) => (
                 <FAQItem key={faq.q} q={faq.q} a={faq.a} />
               ))}
@@ -424,13 +451,13 @@ export default function Visa() {
           </div>
 
           {/* Rules */}
-          <div>
+          <div className="w-full">
             <h2 className="text-[16px] font-bold text-[#051A14] mb-4">Important 2027 Rules</h2>
             <div className="flex flex-col gap-3">
               {importantRules.map((rule, i) => (
-                <div key={i} className="flex items-start gap-3 bg-white rounded-xl border border-gray-100 p-4 shadow-sm hover:border-[#C9A84C]/50 transition-colors">
+                <div key={i} className="flex items-start gap-3 bg-white rounded-xl border border-gray-100 p-4 shadow-sm hover:border-[#C9A84C]/50 transition-colors w-full">
                   <Info className="w-4 h-4 text-[#C9A84C] shrink-0 mt-0.5" />
-                  <p className="text-[12px] text-gray-600 leading-relaxed">{rule}</p>
+                  <p className="text-[11px] sm:text-[12px] text-gray-600 leading-relaxed">{rule}</p>
                 </div>
               ))}
             </div>
