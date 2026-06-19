@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import dotenv from "dotenv";
 import dns from "dns";
-import User from "../modules/user/user.model.js";
+import User from "../modules/auth/user.model.js";
 
 // Apply the same DNS fix used in app.js
 dns.setServers(["8.8.4.4", "8.8.8.8"]);
@@ -24,8 +24,6 @@ const seedAdmin = async () => {
     }
 
     await User.create({
-      firstName: null,
-      lastName: null,
       email: "admin@umrahbridge.com",
       password: await bcrypt.hash("admin@", 10),
       role: "ADMIN",

@@ -1,4 +1,4 @@
-import logo from '/vite.svg'
+import logo from '../assets/images/logo.png'
 import payment from '../assets/images/payment.png'
 import { NavLink } from 'react-router-dom'
 import  PreFooterCertifications  from './pre-footer-certifications'
@@ -69,7 +69,7 @@ const Footer = () => {
               <li className='text-[12px]'>13 Station Rd, London SE25 5AH</li>
               <li className='text-[12px] hover:text-[#DDB95A] cursor-pointer transition-colors'>support@umrahbridge.com</li>
               <li className='text-[12px] font-bold text-white mt-1'>
-                Expert: <span className='text-[#DDB95A] font-normal'>01425 480 400</span>
+                Expert: <span className='text-[#DDB95A] font-normal'>+44 7445 274723</span>
               </li>
             </ul>
             
@@ -95,7 +95,7 @@ const Footer = () => {
           {/* Left Side: Logo, Copyright, Legal Links, Fine Print */}
           <div className='flex-1 max-w-4xl'>
             <div className='flex flex-col sm:flex-row sm:items-start gap-4 mb-4'>
-              <img className='w-12 h-12 object-contain shrink-0' src={logo} alt="Umrah Bridge Logo" />
+              <img className='w-auto h-15 object-contain shrink-0' src={logo} alt="Umrah Bridge Logo" />
               <div className='flex flex-col gap-1.5'>
                 <p className='text-[12px] text-white font-semibold'>
                   © 2026 Umrah Bridge LLC. All rights reserved. <span className='font-normal text-[#B4BBB9] ml-1'>| ATOL & IATA Protected Agent</span>

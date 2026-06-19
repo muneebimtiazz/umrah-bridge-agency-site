@@ -1,5 +1,6 @@
 import heroBg from "../assets/images/Gemini_Generated_Image_vhejavhejavhejav.png";
 import NavBar from "./navbar";
+import { NavLink } from "react-router-dom";
 
 // import { Instagram, Facebook, Linkedin, Twitter, ArrowUpRight } from "lucide-react";
 import {  ArrowUpRight } from "lucide-react";
@@ -193,10 +194,13 @@ style={{
             <p className="hidden md:block text-white text-[11px] text-right max-w-70 leading-relaxed opacity-90">
               Embark on a sacred journey of a lifetime. We handle all the travel logistics so you can focus entirely on your spiritual connection and peace of mind.
             </p>
-<button className="w-full max-w-50 border border-[#C9A84C] bg-[#C9A84C] text-[#051A14] hover:bg-transparent hover:text-[#C9A84C] transition-colors duration-200 text-[0.7rem] font-bold uppercase tracking-widest py-3 px-3 rounded cursor-pointer flex items-center justify-center gap-1.5">
+<NavLink
+  to="/umrah"
+  className="w-full max-w-50 border border-[#C9A84C] bg-[#C9A84C] text-[#051A14] hover:bg-transparent hover:text-[#C9A84C] transition-colors duration-200 text-[0.7rem] font-bold uppercase tracking-widest py-3 px-3 rounded cursor-pointer flex items-center justify-center gap-1.5"
+>
   View Packages
   <ArrowUpRight size={15} />
-</button>
+</NavLink>
           </div>
         </div>
       </div>

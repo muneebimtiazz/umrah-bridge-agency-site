@@ -1,30 +1,79 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { Loader2 } from "lucide-react";
 import { PackageCard } from "../components/package-card";
-import { packages } from "../data/home.js";
+import { getAllPackages } from "../services/package.service";
 
-// Added DECEMBER to tabs to support UI mapping requirements 
-const tabs = ["ALL", "BUDGET", "VALUE", "LUXURY", "RAMADAN", "DECEMBER"];
+const tabs = ["ALL", "BUDGET", "VALUE", "LUXURY", "RAMADAN", "DECEMBER", "KABA VIEW"];
+
+// Map UI tab names to the exact backend schema enums for accurate filtering
+const tabToTierMap = {
+  "ALL": "all",
+  "BUDGET": "budget",
+  "VALUE": "value",
+  "LUXURY": "luxury",
+  "RAMADAN": "ramadan",
+  "DECEMBER": "december",
+  "KABA VIEW": "view"
+};
 
 export default function Umrah() {
   const location = useLocation();
-  
-  // 1. Initialize activeTab with state from the React Router Link, otherwise default to "ALL"
+
+  // Initialize activeTab with state from the React Router Link, default to "ALL"
   const [activeTab, setActiveTab] = useState(location.state?.tab || "ALL");
 
-  // 2. Add useEffect to catch router state changes if the user clicks the nav dropdown while ALREADY on the /umrah page
+  const [packages, setPackages] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Catch router state changes if the user clicks the nav dropdown while ALREADY on the page
   useEffect(() => {
     if (location.state?.tab) {
       setActiveTab(location.state.tab);
     }
   }, [location.state]);
 
-  // Filter logic based on dataset "tier". 
-  // Safely handles new UI tabs (like DECEMBER) that might not map to data yet.
-  const filteredPackages =
-    activeTab === "ALL"
+  // Fetch the live package list from the API once on mount
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchPackages = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        // Explicitly request Umrah packages. 
+        // Increase limit to 100 so client-side tab filtering has all the data to work with.
+        const res = await getAllPackages({ 
+          journeyType: "Umrah", 
+          limit: 100 
+        });
+
+        // Axios wraps the response in .data, and your backend returns { success: true, data: [...] }
+        const list = res?.data?.data || [];
+
+        if (isMounted) setPackages(list);
+      } catch (err) {
+        console.error("Failed to load packages:", err);
+        if (isMounted) {
+          setError("We couldn't load Umrah packages right now. Please try again shortly.");
+        }
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+
+    fetchPackages();
+    
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Safely filter packages using the mapping object
+  const filteredPackages = activeTab === "ALL"
       ? packages
-      : packages.filter((pkg) => pkg.tier?.toUpperCase() === activeTab);
+      : packages.filter((pkg) => pkg.tier === tabToTierMap[activeTab]);
 
   return (
     <div className="min-h-screen bg-gray-50/50">
@@ -70,19 +119,36 @@ export default function Umrah() {
           </div>
         </div>
 
+        {/* Loading State */}
+        {isLoading && (
+          <div className="flex flex-col items-center justify-center gap-3 py-20 text-gray-400">
+            <Loader2 className="w-7 h-7 animate-spin text-[#D4AF37]" />
+            <p className="text-sm">Loading Umrah packages...</p>
+          </div>
+        )}
+
+        {/* Error State */}
+        {!isLoading && error && (
+          <div className="py-16 text-center">
+            <p className="text-red-500 font-medium">{error}</p>
+          </div>
+        )}
+
         {/* Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {filteredPackages.map((pkg, index) => (
-            <PackageCard key={pkg.title || index} {...pkg} />
-          ))}
-          
-          {/* Fallback state if a UI-only tab (like December) is clicked and has no packages yet */}
-          {filteredPackages.length === 0 && (
-            <div className="col-span-full py-12 text-center">
-              <p className="text-gray-500 font-medium">No packages are currently available for this category.</p>
-            </div>
-          )}
-        </div>
+        {!isLoading && !error && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {filteredPackages.map((pkg, index) => (
+              <PackageCard key={pkg._id || index} {...pkg} id={pkg._id} />
+            ))}
+
+            {/* Fallback state if a category has no packages */}
+            {filteredPackages.length === 0 && (
+              <div className="col-span-full py-12 text-center flex flex-col items-center justify-center">
+                <p className="text-gray-500 font-medium">No packages are currently available for this category.</p>
+              </div>
+            )}
+          </div>
+        )}
 
       </div>
     </div>

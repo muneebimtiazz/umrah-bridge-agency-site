@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
+import logo from "../assets/images/logo.png";
 import { 
   ChevronDown,
   ChevronRight,
@@ -9,8 +10,16 @@ import {
   Phone, 
   Mail, 
   Globe, 
-  Send 
+  Send,
+  Users,
+  Loader2,
+  CheckCircle2
 } from "lucide-react";
+
+// Import your inquiry service
+import { createInquiry } from "../services/enquiry.service";
+
+const TRAVELER_COUNTS = ["1 Pilgrim", "2 Pilgrims", "3-4 Pilgrims", "5+ Pilgrims"];
 
 // --- QUOTE MODAL COMPONENT ---
 function QuoteModal({ isOpen, onClose }) {
@@ -19,12 +28,52 @@ function QuoteModal({ isOpen, onClose }) {
     phone: "",
     email: "",
     journeyType: "",
+    travelers: "",
   });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState(null); // "success" | "error" | null
+  const [submitError, setSubmitError] = useState(null);
 
   if (!isOpen) return null;
 
   const handleChange = (e) =>
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // Client-side validation
+    if (!form.fullName || !form.phone || !form.journeyType || !form.travelers) {
+      setSubmitStatus("error");
+      setSubmitError("Please fill out all required fields.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitStatus(null);
+    setSubmitError(null);
+
+    try {
+      await createInquiry(form);
+
+      setSubmitStatus("success");
+      setForm({ fullName: "", phone: "", email: "", journeyType: "", travelers: "" });
+      
+      // Auto-close after 3 seconds on success
+      setTimeout(() => {
+        setSubmitStatus(null);
+        onClose();
+      }, 3000);
+
+    } catch (err) {
+      console.error("Inquiry error:", err);
+      setSubmitStatus("error");
+      setSubmitError(err?.response?.data?.message || "Failed to send request. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
@@ -46,7 +95,20 @@ function QuoteModal({ isOpen, onClose }) {
         </div>
 
         <div className="p-6">
-          <form className="space-y-5">
+          {submitStatus === "success" && (
+            <div className="mb-5 flex items-center gap-2 bg-[#D4AF37]/10 border border-[#D4AF37]/30 text-[#051A14] text-[12px] font-semibold rounded px-4 py-3">
+              <CheckCircle2 size={16} className="text-[#D4AF37] shrink-0" />
+              <span>Request received! We will contact you shortly.</span>
+            </div>
+          )}
+
+          {submitStatus === "error" && submitError && (
+            <div className="mb-5 bg-red-50 border border-red-200 text-red-600 text-[12px] font-semibold rounded px-4 py-3">
+              {submitError}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-[12px] font-bold text-gray-700 uppercase tracking-wide mb-1.5">Full Name</label>
               <div className="relative flex items-center">
@@ -66,7 +128,10 @@ function QuoteModal({ isOpen, onClose }) {
                 </div>
               </div>
               <div>
-                <label className="block text-[12px] font-bold text-gray-700 uppercase tracking-wide mb-1.5">Email</label>
+                <div className="flex justify-between items-end mb-1.5">
+                  <label className="block text-[12px] font-bold text-gray-700 uppercase tracking-wide">Email</label>
+                  <span className="text-[10px] text-gray-400">Optional</span>
+                </div>
                 <div className="relative flex items-center">
                   <Mail size={16} className="absolute left-3 text-gray-400" />
                   <input type="email" name="email" placeholder="you@example.com" value={form.email} onChange={handleChange}
@@ -75,26 +140,48 @@ function QuoteModal({ isOpen, onClose }) {
               </div>
             </div>
 
-            <div>
-              <label className="block text-[12px] font-bold text-gray-700 uppercase tracking-wide mb-1.5">Journey Type</label>
-              <div className="relative flex items-center">
-                <Globe size={16} className="absolute left-3 text-gray-400 pointer-events-none" />
-                <select name="journeyType" value={form.journeyType} onChange={handleChange}
-                  className="w-full text-[13px] border border-gray-200 rounded py-2.5 pl-9 pr-8 appearance-none focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] bg-white text-gray-700 cursor-pointer">
-                  <option value="" disabled hidden>Select journey type...</option>
-                  <option value="umrah">Umrah Package</option>
-                  <option value="hajj">Hajj Package</option>
-                  <option value="visa">Visa Only</option>
-                  <option value="custom">Custom Itinerary</option>
-                </select>
-                <ChevronDown size={16} className="absolute right-3 text-gray-400 pointer-events-none" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div>
+                <label className="block text-[12px] font-bold text-gray-700 uppercase tracking-wide mb-1.5">Journey Type</label>
+                <div className="relative flex items-center">
+                  <Globe size={16} className="absolute left-3 text-gray-400 pointer-events-none" />
+                  <select name="journeyType" value={form.journeyType} onChange={handleChange}
+                    className="w-full text-[13px] border border-gray-200 rounded py-2.5 pl-9 pr-8 appearance-none focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] bg-white text-gray-700 cursor-pointer">
+                    <option value="" disabled hidden>Select journey...</option>
+                    {/* Exact values matched to backend schema */}
+                    <option value="Umrah Package">Umrah Package</option>
+                    <option value="Hajj Package">Hajj Package</option>
+                    <option value="Visa Only">Visa Only</option>
+                    <option value="Custom Itinerary">Custom Itinerary</option>
+                  </select>
+                  <ChevronDown size={16} className="absolute right-3 text-gray-400 pointer-events-none" />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[12px] font-bold text-gray-700 uppercase tracking-wide mb-1.5">Travelers</label>
+                <div className="relative flex items-center">
+                  <Users size={16} className="absolute left-3 text-gray-400 pointer-events-none" />
+                  <select name="travelers" value={form.travelers} onChange={handleChange}
+                    className="w-full text-[13px] border border-gray-200 rounded py-2.5 pl-9 pr-8 appearance-none focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] bg-white text-gray-700 cursor-pointer">
+                    <option value="" disabled hidden>Select count...</option>
+                    {TRAVELER_COUNTS.map((count) => (
+                      <option key={count} value={count}>{count}</option>
+                    ))}
+                  </select>
+                  <ChevronDown size={16} className="absolute right-3 text-gray-400 pointer-events-none" />
+                </div>
               </div>
             </div>
 
             <div className="pt-3">
-              <button type="button" onClick={onClose}
-                className="w-full bg-[#051A14] hover:bg-[#D4AF37] text-white hover:text-[#051A14] transition-colors duration-300 text-[13px] font-bold uppercase tracking-widest py-3.5 px-4 rounded flex items-center justify-center gap-2 shadow-sm">
-                Request Quote <Send size={15} />
+              <button 
+                type="submit" 
+                disabled={isSubmitting}
+                className="w-full bg-[#051A14] hover:bg-[#D4AF37] disabled:opacity-60 disabled:cursor-not-allowed text-white hover:text-[#051A14] transition-colors duration-300 text-[13px] font-bold uppercase tracking-widest py-3.5 px-4 rounded flex items-center justify-center gap-2 shadow-sm"
+              >
+                <span>{isSubmitting ? "Sending..." : "Request Quote"}</span>
+                {isSubmitting ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
               </button>
             </div>
             
@@ -173,14 +260,16 @@ export default function NavBar() {
       <div className="w-full">
         <div className="flex h-20 items-center justify-between px-6 w-full max-w-7xl mx-auto">
           
-          <Link
-            to="/"
-            className={`text-sm font-extrabold uppercase tracking-[0.2em] shrink-0 ${
-              isDarkNav ? "text-[#051A14]" : "text-white"
-            }`}
-          >
-            LOGO
-          </Link>
+<Link
+  to="/"
+  className="shrink-0"
+>
+  <img
+    src={logo}
+    alt="Logo"
+    className="h-15 w-auto"
+  />
+</Link>
 
           <div className="hidden items-center gap-6 lg:gap-8 md:flex">
             {navLinks.map((link) =>
@@ -260,7 +349,7 @@ export default function NavBar() {
                 Call us from 9am
               </span>
               <a href="tel:01425480400" className={`font-bold text-[14px] hover:text-[#D4AF37] transition-colors ${isDarkNav ? 'text-[#051A14]' : 'text-white'}`}>
-                01425 480 400
+                +44 7445 274723
               </a>
             </div>
 

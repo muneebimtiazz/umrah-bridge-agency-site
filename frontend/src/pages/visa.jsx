@@ -15,8 +15,8 @@ import {
 const steps = [
   {
     number: "01",
-    title: "Contact Qiblatain",
-    description: "Call 332-334-0324 or WhatsApp +1 914-520-0581 with your travel dates, travelers, and nationality.",
+    title: "Contact Umrah Bridge",
+    description: "Call +44 7445 274723 or WhatsApp +44 7445 274723 with your travel dates, travelers, and nationality.",
   },
   {
     number: "02",
@@ -92,27 +92,27 @@ const additionalRequirements = [
 ];
 
 const visaComparison = [
-  { feature: "Who Issues It", umrah: "Authorized agency (e.g., Qiblatain)", evisa: "Saudi MOFA portal / online" },
+  { feature: "Who Issues It", umrah: "Authorized agency (e.g., Umrah Bridge)", evisa: "Saudi MOFA portal / online" },
   { feature: "Validity", umrah: "30 days", evisa: "1 year (multiple entry)" },
   { feature: "Stay Per Visit", umrah: "Up to 30 days", evisa: "Up to 90 days per visit" },
   { feature: "Travel Within KSA", umrah: "Makkah & Madinah only", evisa: "All of Saudi Arabia" },
   { feature: "Umrah Permitted?", umrah: "Yes", evisa: "Yes (since Sept 2019)" },
-  { feature: "Approximate Cost", umrah: "$100–$200 (often in package)", evisa: "~$120–$150 USD" },
+  { feature: "Approximate Cost", umrah: "$100–$200 (often in package)", evisa: "~£95–£119 GBP" },
   { feature: "Best For", umrah: "Group pilgrims, package travelers", evisa: "Independent travelers, families" },
 ];
 
 const faqs = [
   {
     q: "Can US Muslims apply for an Umrah Visa online?",
-    a: "Yes. US Muslims can apply through an authorized agency like Qiblatain, or apply for the Saudi Tourist eVisa directly at the official Saudi government portal. Qiblatain handles the entire process and can get your visa approved in as little as 24 hours.",
+    a: "Yes. US Muslims can apply through an authorized agency like Umrah Bridge, or apply for the Saudi Tourist eVisa directly at the official Saudi government portal. Umrah Bridge handles the entire process and can get your visa approved in as little as 24 hours.",
   },
   {
     q: "How long does it take to get an Umrah Visa from the USA?",
-    a: "With Qiblatain's expedited service: as little as 24 hours. Standard agency processing: 5–10 business days. During Ramadan and Dhul Hijjah peak seasons, allow 2–3 weeks. Apply at least 3–4 weeks before your travel date.",
+    a: "With Umrah Bridge's expedited service: as little as 24 hours. Standard agency processing: 5–10 business days. During Ramadan and Dhul Hijjah peak seasons, allow 2–3 weeks. Apply at least 3–4 weeks before your travel date.",
   },
   {
     q: "Can women perform Umrah from the USA without a mahram?",
-    a: "Yes. Women of all ages can now perform Umrah without a mahram when traveling with an authorized group. With a Saudi Tourist eVisa, women can travel completely independently. Qiblatain will advise on the correct visa type.",
+    a: "Yes. Women of all ages can now perform Umrah without a mahram when traveling with an authorized group. With a Saudi Tourist eVisa, women can travel completely independently. Umrah Bridge will advise on the correct visa type.",
   },
   {
     q: "What is the difference between an Umrah Visa and the Saudi Tourist eVisa?",
@@ -124,7 +124,7 @@ const faqs = [
   },
   {
     q: "How much does an Umrah Visa cost from the USA?",
-    a: "The Saudi Tourist eVisa costs approximately $120–$150 USD. A traditional Umrah Visa through an agency is $100–$200, often included within a full package. Call Qiblatain at 332-334-0324 for a personalized quote.",
+    a: "The Saudi Tourist eVisa costs approximately $120–$150 USD. A traditional Umrah Visa through an agency is £80–£160, often included within a full package. Call Umrah Bridge at 332-334-0324 for a personalized quote.",
   },
 ];
 
@@ -182,7 +182,7 @@ export default function Visa() {
         <div className="inline-flex items-center gap-2 bg-[#D4AF37]/10 border border-[#D4AF37]/20 px-3 py-1.5 rounded-full mb-4">
           <ShieldCheck className="w-3.5 h-3.5 text-[#D4AF37]" />
           <span className="text-xs font-semibold tracking-widest uppercase text-[#D4AF37]">
-            ARC & IATA Certified • Since 2007
+            ARC & IATA Certified • Since 2025
           </span>
         </div>
         
@@ -193,7 +193,7 @@ export default function Visa() {
         
         {/* Subheading matching the layout constraints and modern text sizing */}
         <p className="mt-4 text-sm md:text-base text-gray-500 max-w-xl mx-auto leading-relaxed mb-8">
-          Qiblatain handles your entire Umrah Visa application — from documentation to approval 
+          Umrah Bridge handles your entire Umrah Visa application — from documentation to approval 
           in as little as 24 hours. Serving US citizens, Green Card holders, and legal residents 
           of all nationalities.
         </p>
@@ -205,11 +205,11 @@ export default function Visa() {
             className="flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-100 rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.02)] hover:border-[#D4AF37]/40 hover:shadow-[0_4px_20px_rgba(212,175,55,0.08)] transition-all duration-300 group"
           >
             <Phone className="w-4 h-4 text-[#051A14] group-hover:text-[#D4AF37] transition-colors" />
-            <span className="text-xs font-bold text-[#051A14] group-hover:text-[#D4AF37] transition-colors tracking-wide">332-334-0324</span>
+            <span className="text-xs font-bold text-[#051A14] group-hover:text-[#D4AF37] transition-colors tracking-wide">+44 7445 274723</span>
           </a>
           
           <a 
-            href="https://wa.me/19145200581" 
+            href="https://wa.me/447445274723" 
             className="flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-100 rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.02)] hover:border-[#25D366]/40 hover:shadow-[0_4px_20px_rgba(37,211,102,0.08)] transition-all duration-300 group"
           >
             <MessageCircle className="w-4 h-4 text-[#25D366]" />
@@ -281,7 +281,7 @@ export default function Visa() {
             <h2 className="text-[16px] font-bold text-[#051A14] mb-4">Processing Times</h2>
             <div className="bg-white rounded-xl shadow-sm p-5 border border-gray-100 flex flex-col gap-3">
               {[
-                { label: "Qiblatain Expedited", time: "24 Hours", highlight: true },
+                { label: "Expedited", time: "24 Hours", highlight: true },
                 { label: "Tourist eVisa (Online)", time: "24–72 Hours", highlight: false },
                 { label: "Standard Agency", time: "5–10 Days", highlight: false },
                 { label: "Peak Seasons", time: "2–3 Weeks", highlight: false },
@@ -384,7 +384,7 @@ export default function Visa() {
           
           <div className="relative z-10">
             <div className="text-center mb-8">
-              <h2 className="text-[20px] sm:text-2xl font-bold text-white mb-2">Why Choose Qiblatain?</h2>
+              <h2 className="text-[20px] sm:text-2xl font-bold text-white mb-2">Why Choose Umrah Bridge?</h2>
               <p className="text-[12px] text-[#C9A84C] font-bold uppercase tracking-widest">Rated ⭐⭐⭐⭐⭐ by 75+ US pilgrims</p>
             </div>
             

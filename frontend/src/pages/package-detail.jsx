@@ -1,10 +1,9 @@
-import { useState } from "react";
-import { packages } from "../data/home.js";
+import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import {
   MapPin,
   Plane,
   Star,
-  Lock,
   User,
   Mail,
   Globe,
@@ -16,8 +15,12 @@ import {
   Landmark,
   Building2,
   UtensilsCrossed,
-  SlidersHorizontal
+  SlidersHorizontal,
+  Loader2,
+  CheckCircle2,
 } from "lucide-react";
+import { getPackageById } from "../services/package.service";
+import { createInquiry } from "../services/enquiry.service";
 
 // Mapping helper for inclusions to clean text and premium icons
 const inclusionMeta = {
@@ -49,7 +52,7 @@ function HotelImageSlider({ image, badge, name }) {
 
   return (
     <div className="relative overflow-hidden h-56 w-full group/slider">
-      <div 
+      <div
         className="flex h-full w-full transition-transform duration-500 ease-out"
         style={{ transform: `translateX(-${currentIndex * 100}%)` }}
       >
@@ -64,14 +67,14 @@ function HotelImageSlider({ image, badge, name }) {
         {badge}
       </span>
 
-      <button 
+      <button
         type="button"
         onClick={() => setCurrentIndex(v => v === 0 ? slides.length - 1 : v - 1)}
         className="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 rounded bg-white/90 text-[#051a14] hover:bg-white opacity-0 group-hover/slider:opacity-100 transition-all z-10 shadow-sm cursor-pointer"
       >
         <ChevronLeft size={16} />
       </button>
-      <button 
+      <button
         type="button"
         onClick={() => setCurrentIndex(v => v === slides.length - 1 ? 0 : v + 1)}
         className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded bg-white/90 text-[#051a14] hover:bg-white opacity-0 group-hover/slider:opacity-100 transition-all z-10 shadow-sm cursor-pointer"
@@ -83,32 +86,139 @@ function HotelImageSlider({ image, badge, name }) {
 }
 
 export default function PackageDetail() {
-  // Directly targeting the specific 'Ramadan Budget Blessings' package from your import data
-  const pkg = packages.find(p => p.title === "Ramadan Budget Blessings") || packages[0];
+  const { id } = useParams();
+
+  const [pkg, setPkg] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const [form, setForm] = useState({
     fullName: "",
     phone: "",
     email: "",
-    journeyType: `${pkg.journeyType || "Umrah"} Package`,
+    journeyType: "Umrah Package",
     travelers: "",
     message: "",
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState(null); 
+  const [submitError, setSubmitError] = useState(null);
+
+  // ─── Fetch the real package by ID ───
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchPackage = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const res = await getPackageById(id);
+
+        const payload = res?.data;
+        const data = payload?.data || payload?.package || payload;
+
+        if (isMounted) {
+          setPkg(data);
+          setForm((prev) => ({
+            ...prev,
+            journeyType: `${data?.journeyType || "Umrah"} Package`,
+          }));
+        }
+      } catch (err) {
+        console.error("Failed to load package:", err);
+        if (isMounted) {
+          setError("We couldn't find this package. It may have been removed or the link is incorrect.");
+        }
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchPackage();
+    } else {
+      setError("No package was specified.");
+      setIsLoading(false);
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [id]);
 
   const handleChange = (e) =>
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
+  // ─── Submit the inquiry form via the enquiry service ───
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!form.fullName || !form.phone) {
+      setSubmitStatus("error");
+      setSubmitError("Please share your name and phone number so we can reach you.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitStatus(null);
+    setSubmitError(null);
+
+    try {
+      await createInquiry({
+        ...form,
+        packageId: pkg?._id,
+        packageTitle: pkg?.title,
+      });
+
+      setSubmitStatus("success");
+      setForm({
+        fullName: "",
+        phone: "",
+        email: "",
+        journeyType: `${pkg?.journeyType || "Umrah"} Package`,
+        travelers: "",
+        message: "",
+      });
+    } catch (err) {
+      console.error("Failed to submit inquiry:", err);
+      setSubmitStatus("error");
+      setSubmitError("Something went wrong sending your request. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="bg-gray-50/40 min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3 text-gray-400">
+          <Loader2 className="w-7 h-7 animate-spin text-[#c9a84c]" />
+          <p className="text-sm font-medium">Loading package details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !pkg) {
+    return (
+      <div className="bg-gray-50/40 min-h-screen flex items-center justify-center px-6">
+        <div className="text-center max-w-sm">
+          <p className="text-gray-700 font-semibold mb-1">Package Unavailable</p>
+          <p className="text-gray-500 text-sm">{error || "This package could not be found."}</p>
+        </div>
+      </div>
+    );
+  }
+
   const totalNights = (pkg.makkahNights || 0) + (pkg.madinahNights || 0);
   const currencySymbol = pkg.pricing?.currency === "GBP" ? "£" : "$";
 
-  // Build the live timeline array dynamically matching your exact package's nights
   const activeItinerary = [
     { id: 1, title: `Arrival & Makkah Residency (${pkg.makkahNights} Nights)`, description: "Arrive at the terminal checkpoint where our handling team greets you. Enjoy comfortable shared transfers directly to your Makkah lodging room setup. Perfect for experiencing peaceful Ramadan atmospheric environments near the Holy Site." },
     { id: 2, title: `Inter-City Transit Phase`, description: "Logistical transport connection routing your pilgrim group safely across the regional highway network lanes from Makkah directly into the heart of Madinah." },
     { id: 3, title: `Madinah Prophetic Sanctuary Stay (${pkg.madinahNights} Nights)`, description: `Residency allocated inside clean, accessible spaces for ${pkg.madinahNights} nights. Structured to provide time frames for prayer inside Masjid an-Nabawi.` }
   ];
 
-  // Dynamically query only the inclusions that are set to true in the object data
   const activeInclusions = Object.keys(pkg.inclusions || {})
     .filter((key) => pkg.inclusions[key] === true && inclusionMeta[key])
     .map((key) => ({
@@ -116,11 +226,13 @@ export default function PackageDetail() {
       icon: inclusionMeta[key].icon
     }));
 
+  const whatsappMessage = encodeURIComponent(`I am interested in the ${pkg.title} package`);
+
   return (
     <div className="bg-gray-50/40 min-h-screen font-sans antialiased text-gray-900">
-      
+
       {/* ─── Hero Billboard Header ─── */}
-      <div className="bg-[#051a14] px-6 py-14 relative overflow-hidden border-b border-[#1a3028]">
+      <div className="bg-[#051a14] px-6 py-24 relative overflow-hidden border-b border-[#1a3028]">
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="mb-4">
             <span className="bg-[#c9a84c]/20 border border-[#c9a84c]/40 text-[#c9a84c] text-[12px] font-bold uppercase tracking-widest px-3 py-1 rounded-sm">
@@ -145,11 +257,9 @@ export default function PackageDetail() {
       {/* ─── Main Tri-Column Matrix Layout ─── */}
       <div className="max-w-7xl mx-auto px-4 lg:px-6 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-          
-          {/* COLUMN 1 & 2: Structural Showcase, Hotels Top & Timeline Flow */}
+
           <div className="lg:col-span-2 space-y-6">
-            
-            {/* 1. HOTELS SHOWCASE CARD (Positioned at the absolute top of the main stack) */}
+
             <div className="bg-white border border-gray-200 rounded p-5 shadow-sm space-y-4">
               <div className="border-b border-gray-100 pb-3 flex items-center justify-between">
                 <h2 className="text-[15px] font-bold text-[#051a14] uppercase tracking-wide flex items-center gap-2">
@@ -164,16 +274,25 @@ export default function PackageDetail() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 {/* Makkah Accommodations Card */}
                 <div className="border border-gray-100 bg-gray-50/20 rounded overflow-hidden flex flex-col shadow-sm">
-                  <HotelImageSlider image={pkg.heroImage} badge="Makkah Lodging" name="Makkah Accommodation Profile" />
+                  {/* Safely extracting image URL so it doesn't crash React */}
+                  <HotelImageSlider 
+                    image={pkg.heroImage?.url || "https://placehold.co/600x400/1a1a0e/ffffff?text=Makkah+Hotel"} 
+                    badge="Makkah Lodging" 
+                    name="Makkah Accommodation Profile" 
+                  />
                   <div className="p-4 flex flex-col flex-1 space-y-2">
                     <div className="flex items-start justify-between gap-2">
-                      <h4 className="text-[14px] font-bold text-[#051a14]">Makkah Shared Base</h4>
-                      <StarRow count={3} />
+                      <h4 className="text-[14px] font-bold text-[#051a14]">
+                        {pkg.makkahHotel?.name || "Makkah Premium Base"}
+                      </h4>
+                      <StarRow count={pkg.makkahHotel?.starRating || 3} />
                     </div>
                     <p className="text-[11px] font-bold text-[#c9a84c] tracking-wider uppercase">{pkg.makkahNights} Nights Total Stay</p>
                     <div className="flex items-center gap-2 text-gray-500 pt-1">
                       <MapPin className="w-3.5 h-3.5 text-[#c9a84c] shrink-0" />
-                      <span className="text-[12px] text-gray-600">Clean, reliable transit corridor access channels</span>
+                      <span className="text-[12px] text-gray-600">
+                        {pkg.makkahHotel?.distanceFromHaram ? `${pkg.makkahHotel.distanceFromHaram} to Haram` : "Clean, reliable transit corridor access"}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -183,20 +302,23 @@ export default function PackageDetail() {
                   <HotelImageSlider image="https://images.unsplash.com/photo-1564769625905-50e93615e769?w=600&q=80" badge="Madinah Lodging" name="Madinah Accommodation Profile" />
                   <div className="p-4 flex flex-col flex-1 space-y-2">
                     <div className="flex items-start justify-between gap-2">
-                      <h4 className="text-[14px] font-bold text-[#051a14]">Madinah Clean Quarters</h4>
-                      <StarRow count={3} />
+                      <h4 className="text-[14px] font-bold text-[#051a14]">
+                        {pkg.madinahHotel?.name || "Madinah Clean Quarters"}
+                      </h4>
+                      <StarRow count={pkg.madinahHotel?.starRating || 3} />
                     </div>
                     <p className="text-[11px] font-bold text-[#c9a84c] tracking-wider uppercase">{pkg.madinahNights} Nights Total Stay</p>
                     <div className="flex items-center gap-2 text-gray-500 pt-1">
                       <MapPin className="w-3.5 h-3.5 text-[#c9a84c] shrink-0" />
-                      <span className="text-[12px] text-gray-600">Convenient central coordinates inside the city limits</span>
+                      <span className="text-[12px] text-gray-600">
+                        {pkg.madinahHotel?.distanceFromHaram ? `${pkg.madinahHotel.distanceFromHaram} to Masjid an-Nabawi` : "Convenient central coordinates inside the city"}
+                      </span>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* 2. SACRED TIMELINE FLOW */}
             <div className="bg-white border border-gray-200 rounded p-5 shadow-sm">
               <div className="border-b border-gray-100 pb-3 mb-5 flex items-center gap-2">
                 <span className="h-4 w-1 bg-[#c9a84c] rounded-full" />
@@ -225,7 +347,6 @@ export default function PackageDetail() {
               </div>
             </div>
 
-            {/* 3. DYNAMIC INCLUSIONS MATRIX GRID */}
             <div className="bg-[#051a14] rounded p-5 shadow-md border border-[#1a3028]">
               <h2 className="text-[15px] font-bold text-white mb-4 uppercase tracking-wide flex items-center gap-2">
                 <span className="h-4 w-1 bg-[#c9a84c] rounded-full" />
@@ -248,17 +369,15 @@ export default function PackageDetail() {
 
           </div>
 
-          {/* COLUMN 3: Right Sidebar Configurator Breakdown & Custom Quote Form */}
           <div className="space-y-6">
-            
-            {/* Package Configuration Parameters Overview */}
+
             <div className="bg-white border border-gray-200 rounded p-5 shadow-sm relative overflow-hidden">
               <div className="absolute top-0 left-0 right-0 h-1 bg-[#c9a84c]" />
               <div className="text-center mb-4">
                 <p className="text-[11px] font-bold tracking-widest uppercase text-[#c9a84c] mb-0.5">Package Configurator</p>
                 <h2 className="text-[20px] font-black text-[#051a14] tracking-tight uppercase">{pkg.tier} Track Specifications</h2>
               </div>
-              
+
               <div className="bg-gray-50 rounded p-3 space-y-2.5 border border-gray-100 mb-4">
                 <div className="flex justify-between items-center text-[12px]">
                   <span className="font-bold text-gray-400 uppercase tracking-wider">Room Distribution</span>
@@ -280,25 +399,23 @@ export default function PackageDetail() {
                 </div>
               </div>
 
-<a 
-  href="https://wa.me/441425480400?text=I%20am%20interested%20in%20the%20Ramadan%20Budget%20Blessings%20package"
-  target="_blank"
-  rel="noopener noreferrer"
-  className="flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#128C7E] text-white py-3 px-4 rounded font-bold text-[12px] uppercase tracking-widest transition-colors duration-300 shadow-sm cursor-pointer w-full"
->
-  {/* WhatsApp Custom SVG Icon */}
-  <svg 
-    className="w-4 h-4 fill-current shrink-0" 
-    viewBox="0 0 24 24" 
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.516 2.266 2.27 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.713-1.455L0 24zm6.59-4.846c1.66.986 3.295 1.489 5.356 1.491 5.487 0 9.954-4.431 9.957-9.874.001-2.637-1.03-5.112-2.905-6.979C17.223 1.925 14.734.896 12.01.896 6.518.896 2.053 5.328 2.05 10.772c-.001 2.04.507 3.633 1.467 5.258l-1.01 3.687 3.81-.973zM17.65 15c-.3-.15-1.77-.874-2.046-.975-.276-.101-.476-.15-.676.15-.199.3-.774.975-.95 1.174-.175.2-.351.224-.651.075-1.206-.597-2.008-1.055-2.812-2.435-.213-.365.213-.34.61-.133.356.186.476.3.651.45.175.15.175.25.088.425-.088.175-.476.95-.576 1.1-.1.149-.2.174-.5.025-.3-.15-1.272-.469-2.422-1.496-.895-.798-1.5-1.783-1.675-2.083-.175-.3-.018-.463.13-.612.134-.133.3-.349.45-.524.149-.174.199-.299.299-.499.1-.2.05-.375-.025-.525-.075-.15-.676-1.628-.926-2.228-.244-.585-.491-.507-.676-.516-.174-.008-.374-.01-.575-.01-.2 0-.525.075-.8.376-.274.301-1.049 1.026-1.049 2.503 0 1.477 1.075 2.903 1.224 3.103.15.2 2.115 3.23 5.124 4.532.715.31 1.273.495 1.708.633.719.229 1.373.196 1.89.119.577-.087 1.771-.724 2.022-1.424.25-.7.25-1.3.175-1.425-.075-.125-.275-.199-.575-.349z"/>
-  </svg>
-  <span>Chat via WhatsApp</span>
-</a >
+              <a
+                href={`https://wa.me/447445274723?text=${whatsappMessage}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#128C7E] text-white py-3 px-4 rounded font-bold text-[12px] uppercase tracking-widest transition-colors duration-300 shadow-sm cursor-pointer w-full"
+              >
+                <svg
+                  className="w-4 h-4 fill-current shrink-0"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.516 2.266 2.27 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.713-1.455L0 24zm6.59-4.846c1.66.986 3.295 1.489 5.356 1.491 5.487 0 9.954-4.431 9.957-9.874.001-2.637-1.03-5.112-2.905-6.979C17.223 1.925 14.734.896 12.01.896 6.518.896 2.053 5.328 2.05 10.772c-.001 2.04.507 3.633 1.467 5.258l-1.01 3.687 3.81-.973zM17.65 15c-.3-.15-1.77-.874-2.046-.975-.276-.101-.476-.15-.676.15-.199.3-.774.975-.95 1.174-.175.2-.351.224-.651.075-1.206-.597-2.008-1.055-2.812-2.435-.213-.365.213-.34.61-.133.356.186.476.3.651.45.175.15.175.25.088.425-.088.175-.476.95-.576 1.1-.1.149-.2.174-.5.025-.3-.15-1.272-.469-2.422-1.496-.895-.798-1.5-1.783-1.675-2.083-.175-.3-.018-.463.13-.612.134-.133.3-.349.45-.524.149-.174.199-.299.299-.499.1-.2.05-.375-.025-.525-.075-.15-.676-1.628-.926-2.228-.244-.585-.491-.507-.676-.516-.174-.008-.374-.01-.575-.01-.2 0-.525.075-.8.376-.274.301-1.049 1.026-1.049 2.503 0 1.477 1.075 2.903 1.224 3.103.15.2 2.115 3.23 5.124 4.532.715.31 1.273.495 1.708.633.719.229 1.373.196 1.89.119.577-.087 1.771-.724 2.022-1.424.25-.7.25-1.3.175-1.425-.075-.125-.275-.199-.575-.349z"/>
+                </svg>
+                <span>Chat via WhatsApp</span>
+              </a>
             </div>
 
-            {/* Premium Quote Form Styled Exactly Like image_910dc0.png */}
             <div className="bg-[#051a14] rounded p-6 shadow-xl border border-[#1a3028]">
               <div className="mb-6">
                 <span className="inline-block px-2.5 py-0.5 bg-[#c9a84c]/10 border border-[#c9a84c]/30 text-[#c9a84c] text-[11px] font-bold uppercase tracking-widest rounded-full mb-2">
@@ -310,8 +427,19 @@ export default function PackageDetail() {
                 </p>
               </div>
 
-              <form className="space-y-4">
-                {/* Full Name */}
+              {submitStatus === "success" && (
+                <div className="mb-4 flex items-center gap-2 bg-[#c9a84c]/10 border border-[#c9a84c]/30 text-[#c9a84c] text-[12px] font-semibold rounded-sm px-3 py-2.5">
+                  <CheckCircle2 size={15} />
+                  Thank you — your inquiry has been received. Our team will reach out shortly.
+                </div>
+              )}
+              {submitStatus === "error" && submitError && (
+                <div className="mb-4 bg-red-500/10 border border-red-500/30 text-red-400 text-[12px] font-semibold rounded-sm px-3 py-2.5">
+                  {submitError}
+                </div>
+              )}
+
+              <form className="space-y-4" onSubmit={handleSubmit}>
                 <div>
                   <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Full Name</label>
                   <div className="relative flex items-center">
@@ -321,7 +449,6 @@ export default function PackageDetail() {
                   </div>
                 </div>
 
-                {/* Phone */}
                 <div>
                   <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Phone / WhatsApp</label>
                   <div className="relative flex items-center">
@@ -331,7 +458,6 @@ export default function PackageDetail() {
                   </div>
                 </div>
 
-                {/* Email Address */}
                 <div>
                   <div className="flex justify-between items-center mb-1.5">
                     <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider">Email Address</label>
@@ -344,7 +470,6 @@ export default function PackageDetail() {
                   </div>
                 </div>
 
-                {/* Journey Dropdown */}
                 <div>
                   <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Journey Type</label>
                   <div className="relative flex items-center">
@@ -360,7 +485,6 @@ export default function PackageDetail() {
                   </div>
                 </div>
 
-                {/* Travelers Dropdown */}
                 <div>
                   <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Travelers</label>
                   <div className="relative flex items-center">
@@ -377,7 +501,6 @@ export default function PackageDetail() {
                   </div>
                 </div>
 
-                {/* Special Requests Textarea */}
                 <div>
                   <div className="flex justify-between items-center mb-1.5">
                     <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider">Special Requests</label>
@@ -390,13 +513,12 @@ export default function PackageDetail() {
                   </div>
                 </div>
 
-                {/* Submit Trigger */}
                 <div className="pt-2">
-                  <button type="button"
-                    className="w-full bg-[#c9a84c] hover:bg-white text-[#051a14] transition-colors duration-300 text-[12px] font-extrabold uppercase tracking-widest py-3.5 px-4 rounded flex items-center justify-center gap-2 shadow-lg cursor-pointer"
+                  <button type="submit" disabled={isSubmitting}
+                    className="w-full bg-[#c9a84c] hover:bg-white disabled:opacity-60 disabled:cursor-not-allowed text-[#051a14] transition-colors duration-300 text-[12px] font-extrabold uppercase tracking-widest py-3.5 px-4 rounded flex items-center justify-center gap-2 shadow-lg cursor-pointer"
                   >
-                    <span>Submit Inquiry</span>
-                    <Send size={14} />
+                    <span>{isSubmitting ? "Sending..." : "Submit Inquiry"}</span>
+                    {isSubmitting ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
                   </button>
                 </div>
               </form>

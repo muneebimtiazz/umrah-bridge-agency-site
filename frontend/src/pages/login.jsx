@@ -171,7 +171,7 @@ export default function Login() {
 
         {/* Footer */}
         <p className="text-xs text-center text-gray-400 mt-8">
-          © 2026 Lead Umrah &amp; Travel Agency
+          © 2026 Umrah Bridge Travel Agency
         </p>
       </div>
     </div>

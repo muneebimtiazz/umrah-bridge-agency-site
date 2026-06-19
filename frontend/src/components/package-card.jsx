@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import {
   Hotel,
   Plane,
@@ -16,6 +17,8 @@ const amenityIcons = {
 };
 
 export function PackageCard({
+  id,
+  _id,
   title,
   heroImage,
   makkahNights = 0,
@@ -26,7 +29,11 @@ export function PackageCard({
   pricing,
   inclusions,
   directFlights,
+  isFeatured, // Extracted directly from top-level props
 }) {
+  // Accept either "id" or the raw Mongo "_id" field
+  const packageId = id || _id;
+
   const totalDays = makkahNights + madinahNights;
 
   const price = pricing?.amount || 0;
@@ -37,13 +44,16 @@ export function PackageCard({
       ? "€"
       : "$";
 
-  // stays FIX (this was missing correctly formatted output)
+  // Safely extract the image URL from the populated Cloudinary object
+  const imageUrl = heroImage?.url || "https://placehold.co/600x400/1a1a0e/ffffff?text=No+Image";
+
+  // Safely extract the hotel name from the populated Hotel objects
   const stays = [
     makkahNights
-      ? { city: "Makkah", hotel: makkahHotel }
+      ? { city: "Makkah", hotel: makkahHotel?.name || "Hotel TBD" }
       : null,
     madinahNights
-      ? { city: "Madinah", hotel: madinahHotel }
+      ? { city: "Madinah", hotel: madinahHotel?.name || "Hotel TBD" }
       : null,
   ].filter(Boolean);
 
@@ -57,14 +67,12 @@ export function PackageCard({
 
   if (inclusions?.meals) amenities.push("Catering");
 
-  const isFeatured = inclusions?.featured;
-
   return (
     <div className="group bg-white rounded-md overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col border border-gray-200 h-full relative">
 
       {/* FEATURED STAR */}
       {isFeatured && (
-        <div className="absolute top-0 right-4 w-[32px] h-[42px] z-20 bg-[#C9A84C] rounded-b-md flex items-center justify-center">
+        <div className="absolute top-0 right-4 w-[32px] h-[42px] z-20 bg-[#C9A84C] rounded-b-md flex items-center justify-center shadow-md">
           <Star className="w-4 h-4 text-white fill-white" />
         </div>
       )}
@@ -72,7 +80,7 @@ export function PackageCard({
       {/* IMAGE */}
       <div className="relative h-[200px] overflow-hidden bg-gray-900">
         <img
-          src={heroImage}
+          src={imageUrl}
           alt={title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-90"
         />
@@ -80,13 +88,14 @@ export function PackageCard({
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
 
         <div className="absolute bottom-0 left-0 w-full p-4">
-          <h3 className="text-white text-[17px] font-bold">{title}</h3>
+          <h3 className="text-white text-[17px] font-bold line-clamp-2 leading-tight">{title}</h3>
 
           <div className="flex gap-2 mt-2 flex-wrap">
             {amenities.map((a) => (
               <div
                 key={a}
                 className="text-white bg-white/20 p-1.5 rounded"
+                title={a} // Added title tooltip for better UX
               >
                 {amenityIcons[a]}
               </div>
@@ -107,7 +116,7 @@ export function PackageCard({
               <span className="font-bold text-gray-900 min-w-[70px]">
                 {stay.city}:
               </span>
-              <span className="truncate">{stay.hotel}</span>
+              <span className="truncate" title={stay.hotel}>{stay.hotel}</span>
             </li>
           ))}
         </ul>
@@ -116,34 +125,43 @@ export function PackageCard({
       {/* FOOTER */}
       <div className="p-4 bg-gray-50 flex justify-between items-end">
         <div>
-          <div className="text-[10px] font-bold bg-[#C9A84C]/20 px-2 py-0.5 w-fit rounded">
+          <div className="text-[10px] font-bold bg-[#C9A84C]/20 text-[#8a722f] px-2 py-0.5 w-fit rounded">
             {totalDays} Days
           </div>
 
           <div className="mt-1 flex items-baseline gap-1">
             <span className="text-[10px] text-gray-500">From</span>
-            <span className="text-[20px] font-black">
+            <span className="text-[20px] font-black text-gray-900">
               {currencySymbol}
-              {price}
+              {price.toLocaleString()}
             </span>
             <span className="text-[10px] text-gray-500">PP</span>
           </div>
         </div>
 
-        <button className="bg-[#C9A84C] text-[#051A14] text-[11px] font-bold px-4 py-2 rounded">
+        {/* Routes to the package detail page (GET /packages/:id) */}
+        <Link
+          to={packageId ? `/umrah/${packageId}` : "#"}
+          className="bg-[#C9A84C] text-[#051A14] text-[11px] font-bold px-4 py-2 rounded hover:bg-[#b8963e] transition-colors"
+        >
           View Deal
-        </button>
+        </Link>
       </div>
 
       {/* WHATSAPP */}
-      <div className="grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-all">
-        <div className="overflow-hidden">
-          <button className="w-full mt-3 bg-[#25D366] text-white text-[11px] py-2 flex items-center justify-center gap-2">
-            <MessageCircle className="w-4 h-4" />
-            WhatsApp Expert
-          </button>
-        </div>
-      </div>
+<div className="grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-all duration-300">
+  <div className="overflow-hidden">
+    <a
+      href="https://wa.me/447445274723"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="w-full mt-3 bg-[#25D366] text-white font-bold text-[11px] py-2.5 flex items-center justify-center gap-2 hover:bg-[#1ebd5a] transition-colors"
+    >
+      <MessageCircle className="w-4 h-4" />
+      WhatsApp Expert
+    </a>
+  </div>
+</div>
     </div>
   );
 }

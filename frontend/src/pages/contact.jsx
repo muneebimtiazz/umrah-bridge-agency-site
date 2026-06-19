@@ -10,8 +10,13 @@ import {
   MapPin, 
   Building2, 
   Clock,
-  ChevronDown
+  ChevronDown,
+  Loader2,
+  CheckCircle2
 } from "lucide-react";
+
+// API Service
+import { createInquiry } from "../services/enquiry.service";
 
 const JOURNEY_TYPES = [
   "Umrah Package",
@@ -40,8 +45,49 @@ export default function Contact() {
     message: "",
   });
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState(null); // "success" | "error" | null
+  const [submitError, setSubmitError] = useState(null);
+
   const handleChange = (e) =>
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // Client-side Validation Check
+    if (!form.fullName || !form.phone || !form.journeyType || !form.travelers) {
+      setSubmitStatus("error");
+      setSubmitError("Please fill out your Name, Phone Number, Journey Type, and Traveler Count.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitStatus(null);
+    setSubmitError(null);
+
+    try {
+      // Execute inquiry request
+      await createInquiry(form);
+
+      setSubmitStatus("success");
+      // Reset form on successful transmission
+      setForm({
+        fullName: "",
+        phone: "",
+        email: "",
+        journeyType: "",
+        travelers: "",
+        message: "",
+      });
+    } catch (err) {
+      console.error("Inquiry submission error:", err);
+      setSubmitStatus("error");
+      setSubmitError(err?.response?.data?.message || "Something went wrong sending your request. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <section className="bg-gray-50/50 py-16 md:py-24 px-4 sm:px-6 lg:px-10">
@@ -67,7 +113,21 @@ export default function Contact() {
               </p>
             </div>
 
-            <form className="relative z-10 space-y-5">
+            {/* Notification Badges */}
+            {submitStatus === "success" && (
+              <div className="mb-5 flex items-center gap-2 bg-[#C9A84C]/10 border border-[#C9A84C]/30 text-[#C9A84C] text-[13px] font-semibold rounded-lg px-4 py-3 relative z-10">
+                <CheckCircle2 size={16} className="shrink-0" />
+                <span>Thank you! Your inquiry has been received. A concierge will contact you shortly.</span>
+              </div>
+            )}
+
+            {submitStatus === "error" && submitError && (
+              <div className="mb-5 bg-red-500/10 border border-red-500/30 text-red-400 text-[13px] font-semibold rounded-lg px-4 py-3 relative z-10">
+                {submitError}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="relative z-10 space-y-5">
               {/* Full Name */}
               <div>
                 <label className="block text-[12px] font-bold text-[#B4BBB9] uppercase tracking-wide mb-2">
@@ -97,7 +157,7 @@ export default function Contact() {
                     <input
                       type="tel"
                       name="phone"
-                      placeholder="+1 234 567 8900"
+                      placeholder="+44 7445 274723"
                       value={form.phone}
                       onChange={handleChange}
                       className="w-full text-[13px] text-white border border-[#1a3028] bg-[#0a241c] rounded-lg py-3 pl-10 pr-4 placeholder-gray-500 focus:outline-none focus:border-[#C9A84C] transition-colors shadow-inner"
@@ -193,11 +253,16 @@ export default function Contact() {
               {/* Submit Button */}
               <div className="pt-4">
                 <button
-                  type="button"
-                  className="w-full bg-[#C9A84C] hover:bg-white text-[#051A14] transition-colors duration-300 text-[13px] font-extrabold uppercase tracking-widest py-3.5 px-4 rounded-lg cursor-pointer flex items-center justify-center gap-2 shadow-lg"
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full bg-[#C9A84C] hover:bg-white disabled:opacity-60 disabled:cursor-not-allowed text-[#051A14] transition-colors duration-300 text-[13px] font-extrabold uppercase tracking-widest py-3.5 px-4 rounded-lg cursor-pointer flex items-center justify-center gap-2 shadow-lg"
                 >
-                  Submit Inquiry
-                  <Send size={16} className="ml-1" />
+                  <span>{isSubmitting ? "Submitting..." : "Submit Inquiry"}</span>
+                  {isSubmitting ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <Send size={16} />
+                  )}
                 </button>
               </div>
             </form>
@@ -235,8 +300,8 @@ export default function Contact() {
                   </div>
                   <div>
                     <p className="text-[12px] font-bold text-gray-900 uppercase tracking-wider mb-1">Direct Lines</p>
-                    <a href="tel:+441425480400" className="block text-[13px] text-gray-600 hover:text-[#C9A84C] font-medium transition-colors mb-1">
-                      +44 1425 480 400
+                    <a href="tel:+447445274723" className="block text-[13px] text-gray-600 hover:text-[#C9A84C] font-medium transition-colors mb-1">
+                      +44 7445 274723
                     </a>
                     <a href="mailto:support@umrahbridge.com" className="block text-[13px] text-gray-600 hover:text-[#C9A84C] transition-colors">
                       support@umrahbridge.com
@@ -266,7 +331,7 @@ export default function Contact() {
             <div className="mt-10 rounded-xl overflow-hidden border border-gray-200 shadow-sm h-[180px] relative">
               <iframe
                 title="Office Location Map"
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2489.281077848114!2d-0.07590179999999999!3d51.397889899999996!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4876012361b16685%3A0xbfeaee28299f17e7!2s13%20Station%20Rd%2C%20London%20SE25%205AH%2C%20UK!5e0!3m2!1sen!2s!4v1780908350024!5m2!1sen!2s"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2488.4363297155663!2d-0.07727142338571439!3d51.41334811713504!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x48760117469a7b97%3A0x6335f6063b715610!2s13%20Station%20Rd%2C%20London%20SE25%205AH%2C%20UK!5e0!3m2!1sen!2s!4v1710000000000!5m2!1sen!2s"
                 style={{
                   border: 0,
                   position: "absolute",

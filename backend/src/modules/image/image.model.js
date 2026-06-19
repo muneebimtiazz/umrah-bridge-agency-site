@@ -2,10 +2,17 @@ import mongoose from "mongoose";
 
 const imageSchema = new mongoose.Schema(
   {
-    url: { type: String, required: true },
-    publicId: { type: String, required: true, index: true },
+    url: {
+      type: String,
+      required: [true, "Image URL is required."],
+    },
 
-    // link system
+    publicId: {
+      type: String,
+      required: [true, "Cloudinary public_id is required."],
+      unique: true,
+    },
+
     entityType: {
       type: String,
       enum: ["hotel", "package", "hero", "gallery"],
@@ -19,5 +26,7 @@ const imageSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+imageSchema.index({ entityType: 1, entityId: 1 });
 
 export default mongoose.model("Image", imageSchema);

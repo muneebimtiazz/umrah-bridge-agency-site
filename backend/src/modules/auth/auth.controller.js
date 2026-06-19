@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt"; 
 import jwt from "jsonwebtoken";
-import User from "../user/user.model.js";
+import User from "./user.model.js";
 import { createAccessToken, createRefreshToken } from "../../utils/tokens.js";
 import { setAccessTokenCookie, setRefreshTokenCookie, clearAuthCookies } from "../../utils/cookies.js";
 
